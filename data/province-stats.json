@@ -1,0 +1,251 @@
+{
+  "source": {
+    "label": "Nghị quyết 202/2025/QH15 (số liệu đề án sắp xếp, tổng hợp bởi Tuổi Trẻ 13/5/2025, qua Wikipedia tiếng Việt)",
+    "year": 2025,
+    "urls": [
+      "https://vi.wikipedia.org/wiki/T%E1%BB%89nh_(Vi%E1%BB%87t_Nam)",
+      "https://vi.wikipedia.org/wiki/Th%C3%A0nh_ph%E1%BB%91_tr%E1%BB%B1c_thu%E1%BB%99c_trung_%C6%B0%C6%A1ng_(Vi%E1%BB%87t_Nam)",
+      "https://tuoitre.vn/chi-tiet-du-kien-quy-mo-dan-so-dien-tich-kinh-te-cua-34-tinh-thanh-sau-sap-nhap-20250513081155167.htm"
+    ]
+  },
+  "provinces": [
+    {
+      "code": "01",
+      "name": "Hà Nội",
+      "areaKm2": 3359.82,
+      "population": 8807523,
+      "adminCenter": null
+    },
+    {
+      "code": "04",
+      "name": "Cao Bằng",
+      "areaKm2": 6700.39,
+      "population": 573119,
+      "adminCenter": "Thục Phán"
+    },
+    {
+      "code": "08",
+      "name": "Tuyên Quang",
+      "areaKm2": 13795.5,
+      "population": 1865270,
+      "adminCenter": "Minh Xuân"
+    },
+    {
+      "code": "11",
+      "name": "Điện Biên",
+      "areaKm2": 9539.93,
+      "population": 673091,
+      "adminCenter": "Điện Biên Phủ"
+    },
+    {
+      "code": "12",
+      "name": "Lai Châu",
+      "areaKm2": 9068.73,
+      "population": 512601,
+      "adminCenter": "Tân Phong"
+    },
+    {
+      "code": "14",
+      "name": "Sơn La",
+      "areaKm2": 14108.89,
+      "population": 1404587,
+      "adminCenter": "Chiềng Cơi"
+    },
+    {
+      "code": "15",
+      "name": "Lào Cai",
+      "areaKm2": 13256.92,
+      "population": 1778785,
+      "adminCenter": "Yên Bái"
+    },
+    {
+      "code": "19",
+      "name": "Thái Nguyên",
+      "areaKm2": 8375.21,
+      "population": 1799489,
+      "adminCenter": "Phan Đình Phùng"
+    },
+    {
+      "code": "20",
+      "name": "Lạng Sơn",
+      "areaKm2": 8310.18,
+      "population": 881384,
+      "adminCenter": "Lương Văn Tri"
+    },
+    {
+      "code": "22",
+      "name": "Quảng Ninh",
+      "areaKm2": 6231.27,
+      "population": 1523400,
+      "adminCenter": null
+    },
+    {
+      "code": "24",
+      "name": "Bắc Ninh",
+      "areaKm2": 4713.75,
+      "population": 3989623,
+      "adminCenter": null
+    },
+    {
+      "code": "25",
+      "name": "Phú Thọ",
+      "areaKm2": 9361.38,
+      "population": 4022638,
+      "adminCenter": "Việt Trì"
+    },
+    {
+      "code": "31",
+      "name": "Hải Phòng",
+      "areaKm2": 3194.72,
+      "population": 4664124,
+      "adminCenter": null
+    },
+    {
+      "code": "33",
+      "name": "Hưng Yên",
+      "areaKm2": 2514.81,
+      "population": 3567943,
+      "adminCenter": "Phố Hiến"
+    },
+    {
+      "code": "37",
+      "name": "Ninh Bình",
+      "areaKm2": 3942.62,
+      "population": 4412264,
+      "adminCenter": "Hoa Lư"
+    },
+    {
+      "code": "38",
+      "name": "Thanh Hoá",
+      "areaKm2": 11114.71,
+      "population": 4320947,
+      "adminCenter": "Hạc Thành"
+    },
+    {
+      "code": "40",
+      "name": "Nghệ An",
+      "areaKm2": 16486.5,
+      "population": 3831694,
+      "adminCenter": "Trường Vinh"
+    },
+    {
+      "code": "42",
+      "name": "Hà Tĩnh",
+      "areaKm2": 5994.45,
+      "population": 1622901,
+      "adminCenter": "Thành Sen"
+    },
+    {
+      "code": "44",
+      "name": "Quảng Trị",
+      "areaKm2": 12700,
+      "population": 1870845,
+      "adminCenter": "Đồng Hới"
+    },
+    {
+      "code": "46",
+      "name": "Huế",
+      "areaKm2": 4947.11,
+      "population": 1432986,
+      "adminCenter": null
+    },
+    {
+      "code": "48",
+      "name": "Đà Nẵng",
+      "areaKm2": 11859.59,
+      "population": 3065628,
+      "adminCenter": null
+    },
+    {
+      "code": "51",
+      "name": "Quảng Ngãi",
+      "areaKm2": 14832.55,
+      "population": 2161755,
+      "adminCenter": "Cẩm Thành"
+    },
+    {
+      "code": "52",
+      "name": "Gia Lai",
+      "areaKm2": 21576.93,
+      "population": 3583693,
+      "adminCenter": "Quy Nhơn"
+    },
+    {
+      "code": "56",
+      "name": "Khánh Hoà",
+      "areaKm2": 8555.86,
+      "population": 2243554,
+      "adminCenter": "Nha Trang"
+    },
+    {
+      "code": "66",
+      "name": "Đắk Lắk",
+      "areaKm2": 18096.4,
+      "population": 3346853,
+      "adminCenter": "Buôn Ma Thuột"
+    },
+    {
+      "code": "68",
+      "name": "Lâm Đồng",
+      "areaKm2": 24233.07,
+      "population": 3909335,
+      "adminCenter": "Xuân Hương – Đà Lạt"
+    },
+    {
+      "code": "75",
+      "name": "Đồng Nai",
+      "areaKm2": 13009.783,
+      "population": 4836798,
+      "adminCenter": null
+    },
+    {
+      "code": "79",
+      "name": "Hồ Chí Minh",
+      "areaKm2": 6772.59,
+      "population": 14002598,
+      "adminCenter": null
+    },
+    {
+      "code": "80",
+      "name": "Tây Ninh",
+      "areaKm2": 8536.44,
+      "population": 3254170,
+      "adminCenter": "Long An"
+    },
+    {
+      "code": "82",
+      "name": "Đồng Tháp",
+      "areaKm2": 5938.64,
+      "population": 4370046,
+      "adminCenter": "Mỹ Tho"
+    },
+    {
+      "code": "86",
+      "name": "Vĩnh Long",
+      "areaKm2": 6296.2,
+      "population": 4257581,
+      "adminCenter": "Long Châu"
+    },
+    {
+      "code": "91",
+      "name": "An Giang",
+      "areaKm2": 9893.92,
+      "population": 5062768,
+      "adminCenter": "Rạch Giá"
+    },
+    {
+      "code": "92",
+      "name": "Cần Thơ",
+      "areaKm2": 6360.83,
+      "population": 4199824,
+      "adminCenter": null
+    },
+    {
+      "code": "96",
+      "name": "Cà Mau",
+      "areaKm2": 7942.39,
+      "population": 2606672,
+      "adminCenter": "Tân Thành"
+    }
+  ]
+}

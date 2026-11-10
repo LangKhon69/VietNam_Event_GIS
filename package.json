@@ -1,0 +1,14 @@
+{
+  "name": "vietnam-event-gis",
+  "private": true,
+  "description": "Script tiện ích ở thư mục gốc: chuẩn bị dữ liệu và kiểm thử giao diện bằng trình duyệt",
+  "type": "module",
+  "scripts": {
+    "data:stats": "node scripts/extract-province-stats.mjs",
+    "data:provinces": "node scripts/prepare-provinces.mjs",
+    "smoke": "node scripts/smoke-test.mjs"
+  },
+  "devDependencies": {
+    "puppeteer-core": "^25.16.0"
+  }
+}

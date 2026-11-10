@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# File worker MapLibre được chép tự động khi npm install
+/public/maplibre/

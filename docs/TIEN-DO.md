@@ -5,7 +5,7 @@ Cập nhật sau mỗi bước. Đánh dấu `[x]` khi bước đã chạy thử
 ## Lộ trình
 
 - [x] **Bước 0. Khởi tạo:** repo Git, `.gitignore`, app Next.js trong `web/`, trang chào chạy được.
-- [ ] **Bước 1. Bản đồ 34 tỉnh:** tải GeoJSON tỉnh, MapLibre vẽ ranh giới (không bản đồ nền), hover sáng tỉnh và hiện tên, có Hoàng Sa, Trường Sa.
+- [x] **Bước 1. Bản đồ 34 tỉnh:** tải GeoJSON tỉnh, MapLibre vẽ ranh giới (không bản đồ nền), hover sáng tỉnh và hiện tên, có Hoàng Sa, Trường Sa.
 - [ ] **Bước 2. Cấp xã/phường:** bấm tỉnh thì fitBounds, làm mờ tỉnh khác, nạp ranh giới xã/phường của riêng tỉnh đó; hover xã/phường; nút quay lại toàn quốc; xử lý chạm trên thiết bị cảm ứng.
 - [ ] **Bước 3. Bảng thông tin tỉnh:** dân số, diện tích, mật độ, số xã/phường, ghi năm và nguồn.
 - [ ] **Bước 4. CSDL và API:** Docker Compose PostgreSQL + PostGIS, `api/` Node.js, nạp ranh giới tỉnh và xã/phường, bảng thống kê tỉnh.
@@ -27,6 +27,11 @@ Cập nhật sau mỗi bước. Đánh dấu `[x]` khi bước đã chạy thử
 - Trang chào tiếng Việt (`lang="vi"`, font Inter có bộ ký tự tiếng Việt thay cho Geist vốn thiếu dấu tiếng Việt).
 - Đã chạy thử: `npm run lint` sạch, `npm run build` thành công, `npm run dev` trả về trang `/` mã 200 với đúng nội dung.
 - Ghi chú: `npm install` lần đầu mất khoảng 10 phút (mạng chậm). Next.js 16 tự sinh `web/AGENTS.md` (hướng dẫn cho AI đọc tài liệu Next đi kèm), giữ lại trong repo.
+- **Bước 1 xong.** Tải 34 file GeoJSON tỉnh (bộ dữ liệu v5.2.0) vào `data/raw/` (không commit). Script `scripts/prepare-provinces.mjs` đơn giản hóa (Douglas–Peucker, sai số ~100 m) từ 92.875 xuống 23.256 điểm, ghi `web/public/geo/provinces.json` (479 KB), giữ nguyên các đảo nhỏ.
+- Bản đồ MapLibre GL JS v6 không có bản đồ nền; hover sáng tỉnh, hiện nhãn tên lấy từ dữ liệu.
+- Số liệu dân số/diện tích: 2 trang nguồn trong kế hoạch không truy cập được (Thư viện Pháp luật chặn bot 403, amilawfirm lỗi DNS). Thay bằng bảng trên Wikipedia tiếng Việt (trích Tuổi Trẻ 13/5/2025, cùng số với NQ 202/2025/QH15, ví dụ TP.HCM 14.002.598 người / 6.772,59 km²). Script `scripts/extract-province-stats.mjs` -> `data/province-stats.json`. **Nên đối chiếu lại với văn bản gốc của nghị quyết.**
+- Kiểm thử: `npm run smoke` (puppeteer-core + Edge có sẵn) kiểm tra 34 tỉnh, Hoàng Sa thuộc Đà Nẵng, Trường Sa thuộc Khánh Hòa, hover Hà Nội hiện nhãn; ảnh lưu `docs/screenshots/`.
+- Lỗi gặp và cách sửa: (1) MapLibre v6 không tìm được worker khi Next.js đóng gói -> chép worker vào `public/maplibre/` bằng postinstall và gọi `setWorkerUrl`; (2) khung bản đồ cao 0 px vì CSS MapLibre đặt `position: relative` -> dùng `h-full`; (3) Next.js nhầm thư mục gốc do có 2 package-lock -> đặt `turbopack.root`.
 
 ## Để sau
 
