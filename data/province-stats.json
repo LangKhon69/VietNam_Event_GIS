@@ -8,244 +8,487 @@
       "https://tuoitre.vn/chi-tiet-du-kien-quy-mo-dan-so-dien-tich-kinh-te-cua-34-tinh-thanh-sau-sap-nhap-20250513081155167.htm"
     ]
   },
+  "adminSource": {
+    "label": "vietnamese-provinces-database (Quyết định 19/2025/QĐ-TTg và các nghị quyết cập nhật)",
+    "version": "v5.2.0",
+    "url": "https://github.com/thanglequoc/vietnamese-provinces-database"
+  },
   "provinces": [
     {
       "code": "01",
       "name": "Hà Nội",
+      "fullName": "Thành phố Hà Nội",
       "areaKm2": 3359.82,
       "population": 8807523,
-      "adminCenter": null
+      "adminCenter": null,
+      "wardCount": 126,
+      "wardTypes": {
+        "phuong": 51,
+        "xa": 75,
+        "dacKhu": 0
+      }
     },
     {
       "code": "04",
       "name": "Cao Bằng",
+      "fullName": "Tỉnh Cao Bằng",
       "areaKm2": 6700.39,
       "population": 573119,
-      "adminCenter": "Thục Phán"
+      "adminCenter": "Thục Phán",
+      "wardCount": 56,
+      "wardTypes": {
+        "phuong": 3,
+        "xa": 53,
+        "dacKhu": 0
+      }
     },
     {
       "code": "08",
       "name": "Tuyên Quang",
+      "fullName": "Tỉnh Tuyên Quang",
       "areaKm2": 13795.5,
       "population": 1865270,
-      "adminCenter": "Minh Xuân"
+      "adminCenter": "Minh Xuân",
+      "wardCount": 124,
+      "wardTypes": {
+        "phuong": 7,
+        "xa": 117,
+        "dacKhu": 0
+      }
     },
     {
       "code": "11",
       "name": "Điện Biên",
+      "fullName": "Tỉnh Điện Biên",
       "areaKm2": 9539.93,
       "population": 673091,
-      "adminCenter": "Điện Biên Phủ"
+      "adminCenter": "Điện Biên Phủ",
+      "wardCount": 45,
+      "wardTypes": {
+        "phuong": 3,
+        "xa": 42,
+        "dacKhu": 0
+      }
     },
     {
       "code": "12",
       "name": "Lai Châu",
+      "fullName": "Tỉnh Lai Châu",
       "areaKm2": 9068.73,
       "population": 512601,
-      "adminCenter": "Tân Phong"
+      "adminCenter": "Tân Phong",
+      "wardCount": 38,
+      "wardTypes": {
+        "phuong": 2,
+        "xa": 36,
+        "dacKhu": 0
+      }
     },
     {
       "code": "14",
       "name": "Sơn La",
+      "fullName": "Tỉnh Sơn La",
       "areaKm2": 14108.89,
       "population": 1404587,
-      "adminCenter": "Chiềng Cơi"
+      "adminCenter": "Chiềng Cơi",
+      "wardCount": 75,
+      "wardTypes": {
+        "phuong": 8,
+        "xa": 67,
+        "dacKhu": 0
+      }
     },
     {
       "code": "15",
       "name": "Lào Cai",
+      "fullName": "Tỉnh Lào Cai",
       "areaKm2": 13256.92,
       "population": 1778785,
-      "adminCenter": "Yên Bái"
+      "adminCenter": "Yên Bái",
+      "wardCount": 99,
+      "wardTypes": {
+        "phuong": 10,
+        "xa": 89,
+        "dacKhu": 0
+      }
     },
     {
       "code": "19",
       "name": "Thái Nguyên",
+      "fullName": "Tỉnh Thái Nguyên",
       "areaKm2": 8375.21,
       "population": 1799489,
-      "adminCenter": "Phan Đình Phùng"
+      "adminCenter": "Phan Đình Phùng",
+      "wardCount": 92,
+      "wardTypes": {
+        "phuong": 15,
+        "xa": 77,
+        "dacKhu": 0
+      }
     },
     {
       "code": "20",
       "name": "Lạng Sơn",
+      "fullName": "Tỉnh Lạng Sơn",
       "areaKm2": 8310.18,
       "population": 881384,
-      "adminCenter": "Lương Văn Tri"
+      "adminCenter": "Lương Văn Tri",
+      "wardCount": 65,
+      "wardTypes": {
+        "phuong": 4,
+        "xa": 61,
+        "dacKhu": 0
+      }
     },
     {
       "code": "22",
       "name": "Quảng Ninh",
+      "fullName": "Thành phố Quảng Ninh",
       "areaKm2": 6231.27,
       "population": 1523400,
-      "adminCenter": null
+      "adminCenter": null,
+      "wardCount": 54,
+      "wardTypes": {
+        "phuong": 30,
+        "xa": 22,
+        "dacKhu": 2
+      }
     },
     {
       "code": "24",
       "name": "Bắc Ninh",
+      "fullName": "Thành phố Bắc Ninh",
       "areaKm2": 4713.75,
       "population": 3989623,
-      "adminCenter": null
+      "adminCenter": null,
+      "wardCount": 99,
+      "wardTypes": {
+        "phuong": 45,
+        "xa": 54,
+        "dacKhu": 0
+      }
     },
     {
       "code": "25",
       "name": "Phú Thọ",
+      "fullName": "Tỉnh Phú Thọ",
       "areaKm2": 9361.38,
       "population": 4022638,
-      "adminCenter": "Việt Trì"
+      "adminCenter": "Việt Trì",
+      "wardCount": 148,
+      "wardTypes": {
+        "phuong": 15,
+        "xa": 133,
+        "dacKhu": 0
+      }
     },
     {
       "code": "31",
       "name": "Hải Phòng",
+      "fullName": "Thành phố Hải Phòng",
       "areaKm2": 3194.72,
       "population": 4664124,
-      "adminCenter": null
+      "adminCenter": null,
+      "wardCount": 114,
+      "wardTypes": {
+        "phuong": 45,
+        "xa": 67,
+        "dacKhu": 2
+      }
     },
     {
       "code": "33",
       "name": "Hưng Yên",
+      "fullName": "Tỉnh Hưng Yên",
       "areaKm2": 2514.81,
       "population": 3567943,
-      "adminCenter": "Phố Hiến"
+      "adminCenter": "Phố Hiến",
+      "wardCount": 104,
+      "wardTypes": {
+        "phuong": 11,
+        "xa": 93,
+        "dacKhu": 0
+      }
     },
     {
       "code": "37",
       "name": "Ninh Bình",
+      "fullName": "Tỉnh Ninh Bình",
       "areaKm2": 3942.62,
       "population": 4412264,
-      "adminCenter": "Hoa Lư"
+      "adminCenter": "Hoa Lư",
+      "wardCount": 129,
+      "wardTypes": {
+        "phuong": 32,
+        "xa": 97,
+        "dacKhu": 0
+      }
     },
     {
       "code": "38",
       "name": "Thanh Hoá",
+      "fullName": "Tỉnh Thanh Hoá",
       "areaKm2": 11114.71,
       "population": 4320947,
-      "adminCenter": "Hạc Thành"
+      "adminCenter": "Hạc Thành",
+      "wardCount": 166,
+      "wardTypes": {
+        "phuong": 19,
+        "xa": 147,
+        "dacKhu": 0
+      }
     },
     {
       "code": "40",
       "name": "Nghệ An",
+      "fullName": "Tỉnh Nghệ An",
       "areaKm2": 16486.5,
       "population": 3831694,
-      "adminCenter": "Trường Vinh"
+      "adminCenter": "Trường Vinh",
+      "wardCount": 130,
+      "wardTypes": {
+        "phuong": 11,
+        "xa": 119,
+        "dacKhu": 0
+      }
     },
     {
       "code": "42",
       "name": "Hà Tĩnh",
+      "fullName": "Tỉnh Hà Tĩnh",
       "areaKm2": 5994.45,
       "population": 1622901,
-      "adminCenter": "Thành Sen"
+      "adminCenter": "Thành Sen",
+      "wardCount": 69,
+      "wardTypes": {
+        "phuong": 9,
+        "xa": 60,
+        "dacKhu": 0
+      }
     },
     {
       "code": "44",
       "name": "Quảng Trị",
+      "fullName": "Tỉnh Quảng Trị",
       "areaKm2": 12700,
       "population": 1870845,
-      "adminCenter": "Đồng Hới"
+      "adminCenter": "Đồng Hới",
+      "wardCount": 78,
+      "wardTypes": {
+        "phuong": 8,
+        "xa": 69,
+        "dacKhu": 1
+      }
     },
     {
       "code": "46",
       "name": "Huế",
+      "fullName": "Thành phố Huế",
       "areaKm2": 4947.11,
       "population": 1432986,
-      "adminCenter": null
+      "adminCenter": null,
+      "wardCount": 40,
+      "wardTypes": {
+        "phuong": 21,
+        "xa": 19,
+        "dacKhu": 0
+      }
     },
     {
       "code": "48",
       "name": "Đà Nẵng",
+      "fullName": "Thành phố Đà Nẵng",
       "areaKm2": 11859.59,
       "population": 3065628,
-      "adminCenter": null
+      "adminCenter": null,
+      "wardCount": 94,
+      "wardTypes": {
+        "phuong": 23,
+        "xa": 70,
+        "dacKhu": 1
+      }
     },
     {
       "code": "51",
       "name": "Quảng Ngãi",
+      "fullName": "Tỉnh Quảng Ngãi",
       "areaKm2": 14832.55,
       "population": 2161755,
-      "adminCenter": "Cẩm Thành"
+      "adminCenter": "Cẩm Thành",
+      "wardCount": 96,
+      "wardTypes": {
+        "phuong": 9,
+        "xa": 86,
+        "dacKhu": 1
+      }
     },
     {
       "code": "52",
       "name": "Gia Lai",
+      "fullName": "Tỉnh Gia Lai",
       "areaKm2": 21576.93,
       "population": 3583693,
-      "adminCenter": "Quy Nhơn"
+      "adminCenter": "Quy Nhơn",
+      "wardCount": 135,
+      "wardTypes": {
+        "phuong": 25,
+        "xa": 110,
+        "dacKhu": 0
+      }
     },
     {
       "code": "56",
       "name": "Khánh Hoà",
+      "fullName": "Tỉnh Khánh Hoà",
       "areaKm2": 8555.86,
       "population": 2243554,
-      "adminCenter": "Nha Trang"
+      "adminCenter": "Nha Trang",
+      "wardCount": 65,
+      "wardTypes": {
+        "phuong": 16,
+        "xa": 48,
+        "dacKhu": 1
+      }
     },
     {
       "code": "66",
       "name": "Đắk Lắk",
+      "fullName": "Tỉnh Đắk Lắk",
       "areaKm2": 18096.4,
       "population": 3346853,
-      "adminCenter": "Buôn Ma Thuột"
+      "adminCenter": "Buôn Ma Thuột",
+      "wardCount": 102,
+      "wardTypes": {
+        "phuong": 14,
+        "xa": 88,
+        "dacKhu": 0
+      }
     },
     {
       "code": "68",
       "name": "Lâm Đồng",
+      "fullName": "Tỉnh Lâm Đồng",
       "areaKm2": 24233.07,
       "population": 3909335,
-      "adminCenter": "Xuân Hương – Đà Lạt"
+      "adminCenter": "Xuân Hương – Đà Lạt",
+      "wardCount": 124,
+      "wardTypes": {
+        "phuong": 20,
+        "xa": 103,
+        "dacKhu": 1
+      }
     },
     {
       "code": "75",
       "name": "Đồng Nai",
+      "fullName": "Thành phố Đồng Nai",
       "areaKm2": 13009.783,
       "population": 4836798,
-      "adminCenter": null
+      "adminCenter": null,
+      "wardCount": 95,
+      "wardTypes": {
+        "phuong": 33,
+        "xa": 62,
+        "dacKhu": 0
+      }
     },
     {
       "code": "79",
       "name": "Hồ Chí Minh",
+      "fullName": "Thành phố Hồ Chí Minh",
       "areaKm2": 6772.59,
       "population": 14002598,
-      "adminCenter": null
+      "adminCenter": null,
+      "wardCount": 168,
+      "wardTypes": {
+        "phuong": 113,
+        "xa": 54,
+        "dacKhu": 1
+      }
     },
     {
       "code": "80",
       "name": "Tây Ninh",
+      "fullName": "Tỉnh Tây Ninh",
       "areaKm2": 8536.44,
       "population": 3254170,
-      "adminCenter": "Long An"
+      "adminCenter": "Long An",
+      "wardCount": 96,
+      "wardTypes": {
+        "phuong": 14,
+        "xa": 82,
+        "dacKhu": 0
+      }
     },
     {
       "code": "82",
       "name": "Đồng Tháp",
+      "fullName": "Tỉnh Đồng Tháp",
       "areaKm2": 5938.64,
       "population": 4370046,
-      "adminCenter": "Mỹ Tho"
+      "adminCenter": "Mỹ Tho",
+      "wardCount": 102,
+      "wardTypes": {
+        "phuong": 20,
+        "xa": 82,
+        "dacKhu": 0
+      }
     },
     {
       "code": "86",
       "name": "Vĩnh Long",
+      "fullName": "Tỉnh Vĩnh Long",
       "areaKm2": 6296.2,
       "population": 4257581,
-      "adminCenter": "Long Châu"
+      "adminCenter": "Long Châu",
+      "wardCount": 124,
+      "wardTypes": {
+        "phuong": 19,
+        "xa": 105,
+        "dacKhu": 0
+      }
     },
     {
       "code": "91",
       "name": "An Giang",
+      "fullName": "Tỉnh An Giang",
       "areaKm2": 9893.92,
       "population": 5062768,
-      "adminCenter": "Rạch Giá"
+      "adminCenter": "Rạch Giá",
+      "wardCount": 102,
+      "wardTypes": {
+        "phuong": 14,
+        "xa": 85,
+        "dacKhu": 3
+      }
     },
     {
       "code": "92",
       "name": "Cần Thơ",
+      "fullName": "Thành phố Cần Thơ",
       "areaKm2": 6360.83,
       "population": 4199824,
-      "adminCenter": null
+      "adminCenter": null,
+      "wardCount": 103,
+      "wardTypes": {
+        "phuong": 31,
+        "xa": 72,
+        "dacKhu": 0
+      }
     },
     {
       "code": "96",
       "name": "Cà Mau",
+      "fullName": "Tỉnh Cà Mau",
       "areaKm2": 7942.39,
       "population": 2606672,
-      "adminCenter": "Tân Thành"
+      "adminCenter": "Tân Thành",
+      "wardCount": 64,
+      "wardTypes": {
+        "phuong": 9,
+        "xa": 55,
+        "dacKhu": 0
+      }
     }
   ]
 }

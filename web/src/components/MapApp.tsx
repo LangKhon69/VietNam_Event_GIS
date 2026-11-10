@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useState } from "react";
 import type { ProvinceRef, WardRef } from "@/lib/types";
+import ProvinceInfo from "./ProvinceInfo";
 
 // MapLibre cần đối tượng `window` của trình duyệt nên không render trên server (ssr: false)
 const VietnamMap = dynamic(() => import("./map/VietnamMap"), {
@@ -54,7 +55,8 @@ export default function MapApp() {
               ← Toàn quốc
             </button>
           </div>
-          <div className="flex-1 overflow-y-auto p-4">
+          <div className="flex-1 space-y-4 overflow-y-auto p-4">
+            <ProvinceInfo code={province.code} />
             {ward ? (
               <div className="rounded-lg bg-sky-50 p-3">
                 <p className="text-xs text-sky-700">Đang xem {ward.type.toLowerCase()}</p>

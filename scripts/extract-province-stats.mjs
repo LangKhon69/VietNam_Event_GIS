@@ -50,12 +50,17 @@ const stats = [];
 const addRow = (name, area, population, adminCenter) => {
   const unit = byName.get(normalize(name));
   if (!unit) throw new Error(`Không khớp được tên tỉnh: ${name}`);
+  // Đếm xã/phường/đặc khu từ bộ dữ liệu hành chính (không lấy từ Wikipedia)
+  const countType = (type) => unit.Wards.filter((w) => w.AdministrativeUnitShortName === type).length;
   stats.push({
     code: unit.Code,
     name: unit.Name,
+    fullName: unit.FullName,
     areaKm2: parseVnNumber(area),
     population: parseVnNumber(population),
     adminCenter: adminCenter ?? null,
+    wardCount: unit.Wards.length,
+    wardTypes: { phuong: countType("Phường"), xa: countType("Xã"), dacKhu: countType("Đặc khu") },
   });
 };
 
@@ -84,7 +89,17 @@ const out = {
       "https://tuoitre.vn/chi-tiet-du-kien-quy-mo-dan-so-dien-tich-kinh-te-cua-34-tinh-thanh-sau-sap-nhap-20250513081155167.htm",
     ],
   },
+  // Nguồn số xã/phường
+  adminSource: {
+    label: "vietnamese-provinces-database (Quyết định 19/2025/QĐ-TTg và các nghị quyết cập nhật)",
+    version: JSON.parse(fs.readFileSync(raw("vn_provinces_metadata.json"), "utf8")).DatasetVersion,
+    url: "https://github.com/thanglequoc/vietnamese-provinces-database",
+  },
   provinces: stats,
 };
-fs.writeFileSync(path.join(root, "data/province-stats.json"), JSON.stringify(out, null, 2) + "\n");
-console.log(`Đã ghi ${stats.length} tỉnh vào data/province-stats.json`);
+const json = JSON.stringify(out, null, 2) + "\n";
+fs.writeFileSync(path.join(root, "data/province-stats.json"), json);
+// Bản sao cho web dùng trực tiếp ở Bước 3 (trước khi có API)
+fs.mkdirSync(path.join(root, "web/public/data"), { recursive: true });
+fs.writeFileSync(path.join(root, "web/public/data/province-stats.json"), json);
+console.log(`Đã ghi ${stats.length} tỉnh vào data/province-stats.json và web/public/data/`);

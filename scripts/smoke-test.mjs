@@ -75,6 +75,22 @@ try {
     otherProvinces: new Set(window.__vegisMap.querySourceFeatures("wards").map((f) => f.properties.provinceCode)).size,
   }));
   check(wardState.zoom > 7, `Đã phóng vào tỉnh (zoom ${wardState.zoom.toFixed(1)})`);
+
+  // Bảng thông tin tỉnh (Bước 3)
+  await page.waitForSelector("[data-testid=province-info]");
+  const info = await page.evaluate(() =>
+    Object.fromEntries(
+      ["stat-population", "stat-area", "stat-density", "stat-wards", "stat-source"].map((id) => [
+        id,
+        document.querySelector(`[data-testid=${id}]`)?.textContent ?? "",
+      ]),
+    ),
+  );
+  check(info["stat-population"].includes("8.807.523"), `Dân số Hà Nội: ${info["stat-population"]}`);
+  check(info["stat-area"].includes("3.359,82"), `Diện tích: ${info["stat-area"]}`);
+  check(/\d/.test(info["stat-density"]), `Mật độ: ${info["stat-density"]}`);
+  check(info["stat-wards"] === "126", `Số xã/phường: ${info["stat-wards"]}`);
+  check(/2025/.test(info["stat-source"]) && /202\/2025\/QH15/.test(info["stat-source"]), "Có ghi năm và nguồn số liệu");
   check(wardState.wards > 100 && wardState.otherProvinces === 1, `Chỉ nạp xã/phường của Hà Nội (${wardState.wards} đơn vị)`);
 
   const wardPoint = await lngLatToPagePoint(page, HANOI);

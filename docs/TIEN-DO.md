@@ -7,7 +7,7 @@ Cập nhật sau mỗi bước. Đánh dấu `[x]` khi bước đã chạy thử
 - [x] **Bước 0. Khởi tạo:** repo Git, `.gitignore`, app Next.js trong `web/`, trang chào chạy được.
 - [x] **Bước 1. Bản đồ 34 tỉnh:** tải GeoJSON tỉnh, MapLibre vẽ ranh giới (không bản đồ nền), hover sáng tỉnh và hiện tên, có Hoàng Sa, Trường Sa.
 - [x] **Bước 2. Cấp xã/phường:** bấm tỉnh thì fitBounds, làm mờ tỉnh khác, nạp ranh giới xã/phường của riêng tỉnh đó; hover xã/phường; nút quay lại toàn quốc; xử lý chạm trên thiết bị cảm ứng.
-- [ ] **Bước 3. Bảng thông tin tỉnh:** dân số, diện tích, mật độ, số xã/phường, ghi năm và nguồn.
+- [x] **Bước 3. Bảng thông tin tỉnh:** dân số, diện tích, mật độ, số xã/phường, ghi năm và nguồn.
 - [ ] **Bước 4. CSDL và API:** Docker Compose PostgreSQL + PostGIS, `api/` Node.js, nạp ranh giới tỉnh và xã/phường, bảng thống kê tỉnh.
 - [ ] **Bước 5. Sự kiện:** bảng Venue và Event, dữ liệu mẫu ở nhiều tỉnh, hiển thị điểm trên bản đồ, danh sách theo tỉnh và theo xã/phường, trạng thái Sắp diễn ra / Live / Đã kết thúc, bộ lọc thời gian, tìm kiếm.
 - [ ] **Bước 6. Chỉ đường và Quanh đây:** thẻ sự kiện có nút Chỉ đường (Google Maps URL, chọn phương tiện); Quanh đây bán kính 1–5 km bằng `ST_DWithin`.
@@ -37,6 +37,8 @@ Cập nhật sau mỗi bước. Đánh dấu `[x]` khi bước đã chạy thử
 - Cảm ứng: `(hover: none)` -> chạm 1 lần hiện tên, chạm lần 2 chọn. Phải tắt "chạm đúp phóng to" của MapLibre vì nó nuốt lần chạm thứ 2.
 - Nhãn đặc khu: ở mức toàn quốc chỉ hiện đặc khu xa đất liền (> 1,5°: Hoàng Sa, Trường Sa, Côn Đảo), zoom >= 7 hiện tất cả.
 - Smoke test thêm: bấm Hà Nội (126 xã/phường, zoom 9), hover + bấm Phường Hoàn Kiếm, nút Toàn quốc, giả lập điện thoại chạm 2 lần. Tất cả ĐẠT.
+- **Bước 3 xong.** Bảng thông tin tỉnh (`ProvinceInfo`): dân số, diện tích, mật độ (tính = dân số / diện tích), số xã/phường chia phường/xã/đặc khu (đếm từ bộ dữ liệu hành chính), trung tâm hành chính, ghi năm 2025 và nguồn kèm liên kết, có câu lưu ý "chưa phải số mới nhất". Tạm đọc `web/public/data/province-stats.json`; Bước 4 chuyển sang API.
+- Smoke test: Hà Nội 8.807.523 người, 3.359,82 km², 2.621 người/km², 126 xã/phường, có năm và nguồn. ĐẠT.
 
 ## Để sau
 
