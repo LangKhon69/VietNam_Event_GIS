@@ -5,6 +5,7 @@ import * as maplibregl from "maplibre-gl";
 import type { ExpressionSpecification, MapGeoJSONFeature, StyleSpecification } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { BBox, ProvinceRef, WardRef } from "@/lib/types";
+import { type EventItem, STATUS_COLORS } from "@/lib/events";
 
 // Worker là luồng phụ của MapLibre để xử lý dữ liệu không làm đơ giao diện.
 // File được chép vào public/ bởi scripts/copy-maplibre-worker.mjs.
@@ -32,10 +33,14 @@ type Props = {
   selectedWardCode: string | null;
   onSelectProvince: (province: ProvinceRef) => void;
   onSelectWard: (ward: WardRef) => void;
+  /** Sự kiện đang hiển thị (cùng danh sách với bảng bên) */
+  events: EventItem[];
+  selectedEventId: number | null;
+  onSelectEvent: (event: EventItem) => void;
 };
 
 type HoverLabel = { x: number; y: number; text: string } | null;
-type Picked = { source: "provinces" | "wards"; feature: MapGeoJSONFeature };
+type Picked = { source: "provinces" | "wards" | "events"; feature: MapGeoJSONFeature };
 
 // Khoảng đệm khi phóng vào tỉnh: chừa chỗ cho bảng thông tin (bên trái trên máy tính, bên dưới trên điện thoại)
 function focusPadding(): maplibregl.PaddingOptions {
@@ -44,7 +49,21 @@ function focusPadding(): maplibregl.PaddingOptions {
     : { top: 30, bottom: Math.round(window.innerHeight * 0.45), left: 20, right: 20 };
 }
 
-export default function VietnamMap({ selectedProvince, selectedWardCode, onSelectProvince, onSelectWard }: Props) {
+// Đổi danh sách sự kiện thành GeoJSON điểm để vẽ lên bản đồ
+function eventsToGeoJSON(events: EventItem[]): GeoJSON.FeatureCollection {
+  return {
+    type: "FeatureCollection",
+    features: events.map((e) => ({
+      type: "Feature",
+      id: e.id,
+      properties: { id: e.id, title: e.title, status: e.status },
+      geometry: { type: "Point", coordinates: [e.lng, e.lat] },
+    })),
+  };
+}
+
+export default function VietnamMap(props: Props) {
+  const { selectedProvince, selectedWardCode, events, selectedEventId } = props;
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const provincesRef = useRef<Map<string, ProvinceRef>>(new Map());
@@ -52,9 +71,9 @@ export default function VietnamMap({ selectedProvince, selectedWardCode, onSelec
   const [hoverLabel, setHoverLabel] = useState<HoverLabel>(null);
 
   // Các handler sự kiện của MapLibre chỉ đăng ký 1 lần, nên đọc props mới nhất qua ref
-  const propsRef = useRef({ selectedProvince, onSelectProvince, onSelectWard });
+  const propsRef = useRef(props);
   useEffect(() => {
-    propsRef.current = { selectedProvince, onSelectProvince, onSelectWard };
+    propsRef.current = props;
   });
 
   // 1) Khởi tạo bản đồ, nguồn dữ liệu, các lớp và sự kiện chuột/chạm (chạy 1 lần)
@@ -64,7 +83,7 @@ export default function VietnamMap({ selectedProvince, selectedWardCode, onSelec
       container: containerRef.current,
       style: BASE_STYLE,
       bounds: VIETNAM_BOUNDS,
-      fitBoundsOptions: { padding: 20 },
+      fitBoundsOptions: { padding: focusPadding() },
       attributionControl: false,
       dragRotate: false,
     });
@@ -97,11 +116,19 @@ export default function VietnamMap({ selectedProvince, selectedWardCode, onSelec
       map.setFeatureState(hoveredFeature, { hover: true });
       map.getCanvas().style.cursor = "pointer";
       // Tên lấy từ dữ liệu GeoJSON, không viết cứng trong mã
-      setHoverLabel({ x: point.x, y: point.y, text: String(picked.feature.properties.fullName) });
+      const p = picked.feature.properties;
+      setHoverLabel({ x: point.x, y: point.y, text: String(picked.source === "events" ? p.title : p.fullName) });
     };
 
-    // Tìm đối tượng dưới con trỏ: ưu tiên xã/phường (khi đã chọn tỉnh), sau đó tới tỉnh
+    // Tìm đối tượng dưới con trỏ: ưu tiên điểm sự kiện, rồi xã/phường (khi đã chọn tỉnh), sau đó tới tỉnh
     const pick = (point: maplibregl.Point): Picked | null => {
+      // Vùng bắt rộng hơn chấm tròn vài pixel cho dễ bấm (nhất là trên điện thoại)
+      const box: [maplibregl.PointLike, maplibregl.PointLike] = [
+        [point.x - 6, point.y - 6],
+        [point.x + 6, point.y + 6],
+      ];
+      const event = map.getLayer("event-circle") && map.queryRenderedFeatures(box, { layers: ["event-circle"] })[0];
+      if (event) return { source: "events", feature: event };
       const ward = map.queryRenderedFeatures(point, { layers: ["ward-fill"] })[0];
       if (ward) return { source: "wards", feature: ward };
       const province = map.queryRenderedFeatures(point, { layers: ["province-fill"] })[0];
@@ -112,7 +139,10 @@ export default function VietnamMap({ selectedProvince, selectedWardCode, onSelec
 
     const select = (picked: Picked) => {
       const props = picked.feature.properties;
-      if (picked.source === "wards") {
+      if (picked.source === "events") {
+        const event = propsRef.current.events.find((e) => e.id === props.id);
+        if (event) propsRef.current.onSelectEvent(event);
+      } else if (picked.source === "wards") {
         propsRef.current.onSelectWard({
           code: props.code,
           name: props.name,
@@ -167,6 +197,29 @@ export default function VietnamMap({ selectedProvince, selectedWardCode, onSelec
         paint: {
           "line-color": ["case", hovered, "#b45309", "#92400e"],
           "line-width": ["case", hovered, 2.5, 0.8],
+        },
+      });
+
+      // Điểm sự kiện: màu theo trạng thái (đỏ = đang diễn ra, xanh = sắp diễn ra, xám = đã kết thúc)
+      map.addSource("events", { type: "geojson", data: eventsToGeoJSON(propsRef.current.events) });
+      map.addLayer({
+        id: "event-circle",
+        type: "circle",
+        source: "events",
+        paint: {
+          "circle-color": [
+            "match",
+            ["get", "status"],
+            "live",
+            STATUS_COLORS.live,
+            "upcoming",
+            STATUS_COLORS.upcoming,
+            STATUS_COLORS.ended,
+          ],
+          // Bán kính tăng theo mức zoom (MapLibre yêu cầu ["zoom"] nằm ngoài cùng); chấm đang chọn to hơn
+          "circle-radius": ["interpolate", ["linear"], ["zoom"], 5, ["case", selected, 7, 4.5], 12, ["case", selected, 12, 8]],
+          "circle-stroke-color": "#ffffff",
+          "circle-stroke-width": ["case", selected, 3, hovered, 2.5, 1.5],
         },
       });
 
@@ -236,7 +289,7 @@ export default function VietnamMap({ selectedProvince, selectedWardCode, onSelec
       map.setPaintProperty("province-fill", "fill-color", ["case", hovered, "#f59e0b", "#fef3c7"]);
       map.setPaintProperty("province-fill", "fill-opacity", ["case", hovered, 0.85, 0.7]);
       wardsSource.setData(EMPTY_FC);
-      map.fitBounds(VIETNAM_BOUNDS, { padding: 20, duration: 800 });
+      map.fitBounds(VIETNAM_BOUNDS, { padding: focusPadding(), duration: 800 });
       return;
     }
     const isSelected: ExpressionSpecification = ["==", ["get", "code"], provinceCode];
@@ -263,6 +316,26 @@ export default function VietnamMap({ selectedProvince, selectedWardCode, onSelec
     map.removeFeatureState({ source: "wards" });
     if (selectedWardCode) map.setFeatureState({ source: "wards", id: Number(selectedWardCode) }, { selected: true });
   }, [selectedWardCode, provinceCode, mapReady]);
+
+  // 4) Cập nhật điểm sự kiện khi danh sách đổi (theo tỉnh, xã/phường, bộ lọc, tìm kiếm)
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady) return;
+    (map.getSource("events") as maplibregl.GeoJSONSource).setData(eventsToGeoJSON(events));
+  }, [events, mapReady]);
+
+  // 5) Sự kiện đang chọn: phóng chấm to và đưa vào giữa khung nhìn
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady) return;
+    map.removeFeatureState({ source: "events" });
+    if (selectedEventId === null) return;
+    map.setFeatureState({ source: "events", id: selectedEventId }, { selected: true });
+    const event = propsRef.current.events.find((e) => e.id === selectedEventId);
+    if (event) {
+      map.easeTo({ center: [event.lng, event.lat], zoom: Math.max(map.getZoom(), 12), padding: focusPadding(), duration: 800 });
+    }
+  }, [selectedEventId, mapReady]);
 
   return (
     <div className="relative h-full w-full">

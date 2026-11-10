@@ -9,7 +9,7 @@ Cập nhật sau mỗi bước. Đánh dấu `[x]` khi bước đã chạy thử
 - [x] **Bước 2. Cấp xã/phường:** bấm tỉnh thì fitBounds, làm mờ tỉnh khác, nạp ranh giới xã/phường của riêng tỉnh đó; hover xã/phường; nút quay lại toàn quốc; xử lý chạm trên thiết bị cảm ứng.
 - [x] **Bước 3. Bảng thông tin tỉnh:** dân số, diện tích, mật độ, số xã/phường, ghi năm và nguồn.
 - [x] **Bước 4. CSDL và API:** Docker Compose PostgreSQL + PostGIS, `api/` Node.js, nạp ranh giới tỉnh và xã/phường, bảng thống kê tỉnh.
-- [ ] **Bước 5. Sự kiện:** bảng Venue và Event, dữ liệu mẫu ở nhiều tỉnh, hiển thị điểm trên bản đồ, danh sách theo tỉnh và theo xã/phường, trạng thái Sắp diễn ra / Live / Đã kết thúc, bộ lọc thời gian, tìm kiếm.
+- [x] **Bước 5. Sự kiện:** bảng Venue và Event, dữ liệu mẫu ở nhiều tỉnh, hiển thị điểm trên bản đồ, danh sách theo tỉnh và theo xã/phường, trạng thái Sắp diễn ra / Live / Đã kết thúc, bộ lọc thời gian, tìm kiếm.
 - [ ] **Bước 6. Chỉ đường và Quanh đây:** thẻ sự kiện có nút Chỉ đường (Google Maps URL, chọn phương tiện); Quanh đây bán kính 1–5 km bằng `ST_DWithin`.
 - [ ] **Bước 7. Tài khoản và đăng sự kiện:** đăng ký, đăng nhập, vai trò; form đăng sự kiện, ghim trên bản đồ hoặc GPS, kiểm tra `ST_Covers`, tự gán tỉnh và xã/phường.
 - [ ] **Bước 8. Quản trị:** trang admin duyệt sự kiện, đánh dấu xác thực người nổi tiếng và chủ địa điểm.
@@ -44,6 +44,11 @@ Cập nhật sau mỗi bước. Đánh dấu `[x]` khi bước đã chạy thử
 - API: `/api/health`, `/api/provinces`, `/api/provinces/:code` (thống kê + đếm xã/phường), `/api/geo/locate` (ST_Covers, nếu rơi vào khe hở <= 100 m thì lấy xã gần nhất).
 - Web: bảng thông tin tỉnh đọc từ API; bỏ bản sao tĩnh `web/public/data/`.
 - Kiểm thử `api/test/boundaries.test.ts` (7 bài): 34 tỉnh, 3.321 xã, số liệu TP.HCM, Hồ Gươm thuộc Hà Nội, Hoàng Sa -> Đà Nẵng, Trường Sa -> Khánh Hòa, điểm giữa biển bị từ chối. ĐẠT. Smoke test web ĐẠT.
+- **Bước 5 xong.** Migration `002_events.sql`: bảng venues, events (geography(Point) + GiST, province_code, ward_code, boundary_version, approval_status). `npm run db:seed`: 22 địa điểm thật ở 13 tỉnh, 25 sự kiện hư cấu; tỉnh và xã/phường gán tự động bằng ST_Covers (ví dụ Phố cổ Hội An -> Phường Hội An, Đà Nẵng). Thời gian tính tương đối lúc seed nên luôn có đủ 3 trạng thái.
+- API `GET /api/events` (lọc province, ward, when = all/live/today/tonight/weekend/week/upcoming/ended theo giờ VN, q tìm không dấu bằng unaccent), `GET /api/events/:id`. Trạng thái tính trong SQL từ now(), không lưu.
+- Web: bảng bên luôn hiện (toàn quốc / tỉnh / xã), bộ lọc + tìm kiếm (debounce 300 ms), danh sách, thẻ sự kiện; chấm sự kiện trên bản đồ màu theo trạng thái, bấm chấm hoặc dòng đều mở thẻ.
+- Kiểm thử: `api/test/events.test.ts` 6 bài + `time.test.ts` 4 bài ĐẠT; smoke test thêm 10 kiểm tra sự kiện ĐẠT.
+- Lỗi đã gặp: biểu thức `["zoom"]` của MapLibre phải nằm ngoài cùng; điểm thử trên bản đồ phải tránh chấm sự kiện (chấm được ưu tiên khi bấm).
 
 ## Để sau
 

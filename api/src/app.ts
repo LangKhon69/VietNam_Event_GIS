@@ -4,6 +4,7 @@ import { config } from "./config.js";
 import { query } from "./db.js";
 import { errorHandler, HttpError, parse } from "./lib/http.js";
 import { locatePoint } from "./lib/locate.js";
+import { eventsRouter } from "./routes/events.js";
 import { provincesRouter } from "./routes/provinces.js";
 import { z } from "zod";
 
@@ -20,6 +21,7 @@ export function createApp() {
   });
 
   app.use("/api/provinces", provincesRouter);
+  app.use("/api/events", eventsRouter);
 
   // GET /api/geo/locate?lat=..&lng=..: điểm này thuộc tỉnh, xã/phường nào
   app.get("/api/geo/locate", async (req, res) => {
