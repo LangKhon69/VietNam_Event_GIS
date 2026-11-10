@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // File worker MapLibre được chép tự động, không phải code của dự án
+    "public/maplibre/**",
   ]),
 ]);
 

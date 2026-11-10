@@ -12,6 +12,9 @@ fs.mkdirSync(shotsDir, { recursive: true });
 // Tọa độ dùng để thử (chỉ dùng trong kiểm thử): trung tâm Hà Nội
 const HANOI = [105.85, 21.03];
 
+const textOf = (p, testId) =>
+  p.evaluate((id) => document.querySelector(`[data-testid=${id}]`)?.textContent?.trim() ?? "", testId);
+
 let failures = 0;
 function check(condition, message) {
   console.log(`${condition ? "  ĐẠT " : "  LỖI "} ${message}`);
@@ -58,6 +61,65 @@ try {
   const tooltip = await page.evaluate(() => document.querySelector("[data-testid=hover-label]")?.textContent ?? "");
   check(tooltip.includes("Hà Nội"), `Rê chuột vào Hà Nội hiện nhãn "${tooltip}"`);
   await page.screenshot({ path: path.join(shotsDir, "02-hover-tinh.png") });
+
+  console.log("2. Cấp xã/phường");
+  await page.mouse.click(hanoi.x, hanoi.y);
+  await page.waitForSelector("[data-testid=province-name]");
+  await waitForMapIdle(page);
+  await new Promise((r) => setTimeout(r, 500));
+  const panelName = await textOf(page, "province-name");
+  check(panelName.includes("Hà Nội"), `Bấm Hà Nội mở bảng "${panelName}"`);
+  const wardState = await page.evaluate(() => ({
+    zoom: window.__vegisMap.getZoom(),
+    wards: new Set(window.__vegisMap.querySourceFeatures("wards").map((f) => f.properties.code)).size,
+    otherProvinces: new Set(window.__vegisMap.querySourceFeatures("wards").map((f) => f.properties.provinceCode)).size,
+  }));
+  check(wardState.zoom > 7, `Đã phóng vào tỉnh (zoom ${wardState.zoom.toFixed(1)})`);
+  check(wardState.wards > 100 && wardState.otherProvinces === 1, `Chỉ nạp xã/phường của Hà Nội (${wardState.wards} đơn vị)`);
+
+  const wardPoint = await lngLatToPagePoint(page, HANOI);
+  await page.mouse.move(wardPoint.x + 3, wardPoint.y + 3);
+  await new Promise((r) => setTimeout(r, 300));
+  const wardTooltip = await textOf(page, "hover-label");
+  check(/^(Phường|Xã|Đặc khu) /.test(wardTooltip), `Rê vào xã/phường hiện nhãn "${wardTooltip}"`);
+  await page.mouse.click(wardPoint.x + 3, wardPoint.y + 3);
+  await page.waitForSelector("[data-testid=ward-name]");
+  const wardName = await textOf(page, "ward-name");
+  check(wardName === wardTooltip, `Bấm xã/phường thì chọn "${wardName}"`);
+  await new Promise((r) => setTimeout(r, 300));
+  await page.screenshot({ path: path.join(shotsDir, "03-chon-tinh-xa.png") });
+
+  await page.click("[data-testid=back-button]");
+  await new Promise((r) => setTimeout(r, 1200));
+  await waitForMapIdle(page);
+  const afterBack = await page.evaluate(() => ({
+    panel: !!document.querySelector("[data-testid=side-panel]"),
+    zoom: window.__vegisMap.getZoom(),
+  }));
+  check(!afterBack.panel && afterBack.zoom < 6, `Nút "Toàn quốc" đóng bảng và thu nhỏ (zoom ${afterBack.zoom.toFixed(1)})`);
+
+  console.log("3. Thiết bị cảm ứng: chạm 1 lần xem tên, chạm lần 2 chọn");
+  const mobile = await browser.newPage();
+  await mobile.emulate({
+    viewport: { width: 390, height: 844, isMobile: true, hasTouch: true, deviceScaleFactor: 2 },
+    userAgent: "Mozilla/5.0 (Linux; Android 14) Mobile",
+  });
+  await mobile.goto(WEB_URL, { waitUntil: "networkidle2" });
+  await waitForMapIdle(mobile);
+  const hoverNone = await mobile.evaluate(() => window.matchMedia("(hover: none)").matches);
+  check(hoverNone, "Trình duyệt giả lập điện thoại báo (hover: none)");
+  const tap = await lngLatToPagePoint(mobile, HANOI);
+  await mobile.touchscreen.tap(tap.x, tap.y);
+  await new Promise((r) => setTimeout(r, 400));
+  const firstTap = { label: await textOf(mobile, "hover-label"), panel: await mobile.$("[data-testid=side-panel]") };
+  check(firstTap.label.includes("Hà Nội") && !firstTap.panel, `Chạm lần 1 chỉ hiện tên "${firstTap.label}"`);
+  await mobile.touchscreen.tap(tap.x, tap.y);
+  await mobile.waitForSelector("[data-testid=province-name]", { timeout: 5000 }).catch(() => null);
+  check(!!(await mobile.$("[data-testid=province-name]")), "Chạm lần 2 thì chọn tỉnh");
+  await waitForMapIdle(mobile);
+  await new Promise((r) => setTimeout(r, 500));
+  await mobile.screenshot({ path: path.join(shotsDir, "04-dien-thoai.png") });
+  await mobile.close();
 } catch (err) {
   console.error(err);
   failures++;

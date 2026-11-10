@@ -17,3 +17,14 @@ body {
   color: var(--foreground);
   font-family: var(--font-inter), Arial, Helvetica, sans-serif;
 }
+
+/* Nhãn đặc khu (Hoàng Sa, Trường Sa, Phú Quốc...) đặt trên bản đồ bằng HTML */
+.special-zone-label {
+  pointer-events: none;
+  font-size: 11px;
+  font-style: italic;
+  font-weight: 600;
+  color: #1e3a8a;
+  white-space: nowrap;
+  text-shadow: 0 0 3px #fff, 0 0 3px #fff;
+}

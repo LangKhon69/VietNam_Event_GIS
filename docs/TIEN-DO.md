@@ -6,7 +6,7 @@ Cập nhật sau mỗi bước. Đánh dấu `[x]` khi bước đã chạy thử
 
 - [x] **Bước 0. Khởi tạo:** repo Git, `.gitignore`, app Next.js trong `web/`, trang chào chạy được.
 - [x] **Bước 1. Bản đồ 34 tỉnh:** tải GeoJSON tỉnh, MapLibre vẽ ranh giới (không bản đồ nền), hover sáng tỉnh và hiện tên, có Hoàng Sa, Trường Sa.
-- [ ] **Bước 2. Cấp xã/phường:** bấm tỉnh thì fitBounds, làm mờ tỉnh khác, nạp ranh giới xã/phường của riêng tỉnh đó; hover xã/phường; nút quay lại toàn quốc; xử lý chạm trên thiết bị cảm ứng.
+- [x] **Bước 2. Cấp xã/phường:** bấm tỉnh thì fitBounds, làm mờ tỉnh khác, nạp ranh giới xã/phường của riêng tỉnh đó; hover xã/phường; nút quay lại toàn quốc; xử lý chạm trên thiết bị cảm ứng.
 - [ ] **Bước 3. Bảng thông tin tỉnh:** dân số, diện tích, mật độ, số xã/phường, ghi năm và nguồn.
 - [ ] **Bước 4. CSDL và API:** Docker Compose PostgreSQL + PostGIS, `api/` Node.js, nạp ranh giới tỉnh và xã/phường, bảng thống kê tỉnh.
 - [ ] **Bước 5. Sự kiện:** bảng Venue và Event, dữ liệu mẫu ở nhiều tỉnh, hiển thị điểm trên bản đồ, danh sách theo tỉnh và theo xã/phường, trạng thái Sắp diễn ra / Live / Đã kết thúc, bộ lọc thời gian, tìm kiếm.
@@ -32,6 +32,11 @@ Cập nhật sau mỗi bước. Đánh dấu `[x]` khi bước đã chạy thử
 - Số liệu dân số/diện tích: 2 trang nguồn trong kế hoạch không truy cập được (Thư viện Pháp luật chặn bot 403, amilawfirm lỗi DNS). Thay bằng bảng trên Wikipedia tiếng Việt (trích Tuổi Trẻ 13/5/2025, cùng số với NQ 202/2025/QH15, ví dụ TP.HCM 14.002.598 người / 6.772,59 km²). Script `scripts/extract-province-stats.mjs` -> `data/province-stats.json`. **Nên đối chiếu lại với văn bản gốc của nghị quyết.**
 - Kiểm thử: `npm run smoke` (puppeteer-core + Edge có sẵn) kiểm tra 34 tỉnh, Hoàng Sa thuộc Đà Nẵng, Trường Sa thuộc Khánh Hòa, hover Hà Nội hiện nhãn; ảnh lưu `docs/screenshots/`.
 - Lỗi gặp và cách sửa: (1) MapLibre v6 không tìm được worker khi Next.js đóng gói -> chép worker vào `public/maplibre/` bằng postinstall và gọi `setWorkerUrl`; (2) khung bản đồ cao 0 px vì CSS MapLibre đặt `position: relative` -> dùng `h-full`; (3) Next.js nhầm thư mục gốc do có 2 package-lock -> đặt `turbopack.root`.
+- **Bước 2 xong.** Tải `vn_provinces_wards_geojson.zip` (50 MB, mạng chậm ~25 phút). Script `scripts/prepare-wards.mjs`: 3.321/3.321 xã/phường, 7.129.486 -> 618.461 điểm (sai số ~30 m), mỗi tỉnh 1 file `web/public/geo/wards/{mã}.json` (tổng 13 MB, file lớn nhất 788 KB, nén gzip ~190 KB). Thêm `special-zones.json`: nhãn 13 đặc khu.
+- Bấm tỉnh: fitBounds vào phần đất liền (khung `focusBbox` của đa giác lớn nhất, để Đà Nẵng/Khánh Hòa không bị kéo ra Hoàng Sa/Trường Sa), tỉnh khác chuyển xám mờ, chỉ nạp xã/phường của tỉnh đó; hover/bấm xã/phường; nút "← Toàn quốc".
+- Cảm ứng: `(hover: none)` -> chạm 1 lần hiện tên, chạm lần 2 chọn. Phải tắt "chạm đúp phóng to" của MapLibre vì nó nuốt lần chạm thứ 2.
+- Nhãn đặc khu: ở mức toàn quốc chỉ hiện đặc khu xa đất liền (> 1,5°: Hoàng Sa, Trường Sa, Côn Đảo), zoom >= 7 hiện tất cả.
+- Smoke test thêm: bấm Hà Nội (126 xã/phường, zoom 9), hover + bấm Phường Hoàn Kiếm, nút Toàn quốc, giả lập điện thoại chạm 2 lần. Tất cả ĐẠT.
 
 ## Để sau
 
