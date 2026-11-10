@@ -8,7 +8,7 @@ Cập nhật sau mỗi bước. Đánh dấu `[x]` khi bước đã chạy thử
 - [x] **Bước 1. Bản đồ 34 tỉnh:** tải GeoJSON tỉnh, MapLibre vẽ ranh giới (không bản đồ nền), hover sáng tỉnh và hiện tên, có Hoàng Sa, Trường Sa.
 - [x] **Bước 2. Cấp xã/phường:** bấm tỉnh thì fitBounds, làm mờ tỉnh khác, nạp ranh giới xã/phường của riêng tỉnh đó; hover xã/phường; nút quay lại toàn quốc; xử lý chạm trên thiết bị cảm ứng.
 - [x] **Bước 3. Bảng thông tin tỉnh:** dân số, diện tích, mật độ, số xã/phường, ghi năm và nguồn.
-- [ ] **Bước 4. CSDL và API:** Docker Compose PostgreSQL + PostGIS, `api/` Node.js, nạp ranh giới tỉnh và xã/phường, bảng thống kê tỉnh.
+- [x] **Bước 4. CSDL và API:** Docker Compose PostgreSQL + PostGIS, `api/` Node.js, nạp ranh giới tỉnh và xã/phường, bảng thống kê tỉnh.
 - [ ] **Bước 5. Sự kiện:** bảng Venue và Event, dữ liệu mẫu ở nhiều tỉnh, hiển thị điểm trên bản đồ, danh sách theo tỉnh và theo xã/phường, trạng thái Sắp diễn ra / Live / Đã kết thúc, bộ lọc thời gian, tìm kiếm.
 - [ ] **Bước 6. Chỉ đường và Quanh đây:** thẻ sự kiện có nút Chỉ đường (Google Maps URL, chọn phương tiện); Quanh đây bán kính 1–5 km bằng `ST_DWithin`.
 - [ ] **Bước 7. Tài khoản và đăng sự kiện:** đăng ký, đăng nhập, vai trò; form đăng sự kiện, ghim trên bản đồ hoặc GPS, kiểm tra `ST_Covers`, tự gán tỉnh và xã/phường.
@@ -39,6 +39,11 @@ Cập nhật sau mỗi bước. Đánh dấu `[x]` khi bước đã chạy thử
 - Smoke test thêm: bấm Hà Nội (126 xã/phường, zoom 9), hover + bấm Phường Hoàn Kiếm, nút Toàn quốc, giả lập điện thoại chạm 2 lần. Tất cả ĐẠT.
 - **Bước 3 xong.** Bảng thông tin tỉnh (`ProvinceInfo`): dân số, diện tích, mật độ (tính = dân số / diện tích), số xã/phường chia phường/xã/đặc khu (đếm từ bộ dữ liệu hành chính), trung tâm hành chính, ghi năm 2025 và nguồn kèm liên kết, có câu lưu ý "chưa phải số mới nhất". Tạm đọc `web/public/data/province-stats.json`; Bước 4 chuyển sang API.
 - Smoke test: Hà Nội 8.807.523 người, 3.359,82 km², 2.621 người/km², 126 xã/phường, có năm và nguồn. ĐẠT.
+- **Bước 4 xong.** `docker-compose.yml`: PostGIS 16-3.4 (dùng image có sẵn trên máy vì Docker Hub lỗi DNS lúc kéo image mới), cổng máy 5434 vì 5433 đang bị dự án khác dùng. Mật khẩu trong `.env`, `api/.env` (không commit), có file mẫu `.env.example`.
+- `api/`: Express 5 + pg + zod, TypeScript 7. Migration `001_boundaries.sql` (provinces, wards, province_stats, chỉ mục GiST, extension unaccent). `npm run db:load-boundaries` nạp 34 tỉnh + 3.321 xã/phường + thống kê trong ~5 giây, từ chính các file GeoJSON web hiển thị (ranh giới kiểm tra = ranh giới nhìn thấy).
+- API: `/api/health`, `/api/provinces`, `/api/provinces/:code` (thống kê + đếm xã/phường), `/api/geo/locate` (ST_Covers, nếu rơi vào khe hở <= 100 m thì lấy xã gần nhất).
+- Web: bảng thông tin tỉnh đọc từ API; bỏ bản sao tĩnh `web/public/data/`.
+- Kiểm thử `api/test/boundaries.test.ts` (7 bài): 34 tỉnh, 3.321 xã, số liệu TP.HCM, Hồ Gươm thuộc Hà Nội, Hoàng Sa -> Đà Nẵng, Trường Sa -> Khánh Hòa, điểm giữa biển bị từ chối. ĐẠT. Smoke test web ĐẠT.
 
 ## Để sau
 

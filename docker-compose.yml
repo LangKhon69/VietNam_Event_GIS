@@ -1,0 +1,23 @@
+# CSDL PostgreSQL + PostGIS cho Vietnam Event GIS.
+# Chạy: docker compose up -d   (dừng: docker compose down; xóa cả dữ liệu: docker compose down -v)
+services:
+  db:
+    image: postgis/postgis:16-3.4-alpine
+    container_name: vegis_db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-vegis}
+      POSTGRES_USER: ${POSTGRES_USER:-vegis}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Hay tao file .env tu .env.example}
+    ports:
+      # Cổng 5434 trên máy -> 5432 trong container (tránh trùng PostgreSQL khác trên máy)
+      - "${POSTGRES_PORT:-5434}:5432"
+    volumes:
+      - vegis_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  vegis_db_data:

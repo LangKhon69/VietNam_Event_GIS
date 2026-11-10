@@ -97,9 +97,6 @@ const out = {
   },
   provinces: stats,
 };
-const json = JSON.stringify(out, null, 2) + "\n";
-fs.writeFileSync(path.join(root, "data/province-stats.json"), json);
-// Bản sao cho web dùng trực tiếp ở Bước 3 (trước khi có API)
-fs.mkdirSync(path.join(root, "web/public/data"), { recursive: true });
-fs.writeFileSync(path.join(root, "web/public/data/province-stats.json"), json);
-console.log(`Đã ghi ${stats.length} tỉnh vào data/province-stats.json và web/public/data/`);
+// File này được api/scripts/load-boundaries.ts nạp vào bảng province_stats
+fs.writeFileSync(path.join(root, "data/province-stats.json"), JSON.stringify(out, null, 2) + "\n");
+console.log(`Đã ghi ${stats.length} tỉnh vào data/province-stats.json`);
