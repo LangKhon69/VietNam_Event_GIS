@@ -1,4 +1,5 @@
 import { type EventItem, formatDistance, formatTimeRange } from "@/lib/events";
+import Directions from "./Directions";
 import StatusBadge from "./StatusBadge";
 
 // Thẻ chi tiết sự kiện, mở khi bấm vào điểm trên bản đồ hoặc dòng trong danh sách
@@ -30,6 +31,7 @@ export default function EventCard({ event, onClose }: { event: EventItem; onClos
         </span>
       </p>
       {event.description && <p className="text-sm whitespace-pre-line text-zinc-700">{event.description}</p>}
+      <Directions lat={event.lat} lng={event.lng} />
       {event.ticketUrl && (
         <a href={event.ticketUrl} target="_blank" rel="noopener noreferrer" className="inline-block text-sm text-amber-700 underline">
           Mua vé (trang đối tác) ↗

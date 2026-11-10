@@ -7,12 +7,14 @@ type Props = {
   when: TimeFilter;
   q: string;
   onChange: (next: { when: TimeFilter; q: string }) => void;
+  /** Các nút lọc thời gian hiển thị (mặc định cho chế độ duyệt bản đồ) */
+  options?: TimeFilter[];
 };
 
-const OPTIONS: TimeFilter[] = ["all", "live", "today", "tonight", "weekend", "week", "ended"];
+const DEFAULT_OPTIONS: TimeFilter[] = ["all", "live", "today", "tonight", "weekend", "week", "ended"];
 
 // Bộ lọc thời gian và ô tìm kiếm
-export default function EventFilters({ when, q, onChange }: Props) {
+export default function EventFilters({ when, q, onChange, options = DEFAULT_OPTIONS }: Props) {
   const [text, setText] = useState(q);
 
   // Debounce: chờ người dùng ngừng gõ 300 ms rồi mới tìm, tránh gọi API mỗi phím bấm
@@ -33,7 +35,7 @@ export default function EventFilters({ when, q, onChange }: Props) {
         className="w-full rounded-lg border border-zinc-300 px-3 py-1.5 text-sm outline-none focus:border-amber-500"
       />
       <div className="flex flex-wrap gap-1.5">
-        {OPTIONS.map((opt) => (
+        {options.map((opt) => (
           <button
             key={opt}
             data-testid={`filter-${opt}`}

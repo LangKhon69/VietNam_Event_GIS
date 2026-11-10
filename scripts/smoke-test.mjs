@@ -14,6 +14,7 @@ fs.mkdirSync(shotsDir, { recursive: true });
 const HANOI = [105.38, 21.1];
 const HANOI_WARD = [105.77, 20.96];
 const SON_LA = [104.0, 21.2];
+const HO_GUOM = [105.8523, 21.0288];
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const textOf = (p, testId) =>
@@ -187,6 +188,60 @@ try {
   }));
   check(!afterBack.province && afterBack.zoom < 6, `Nút "Toàn quốc" quay về cả nước (zoom ${afterBack.zoom.toFixed(1)})`);
   check(afterBack.count >= 20, `Toàn quốc có ${afterBack.count} sự kiện`);
+
+  console.log("5. Quanh đây và Chỉ đường");
+  // Giả lập GPS: cho phép quyền vị trí và đặt vị trí ở Hồ Gươm
+  await browser.defaultBrowserContext().overridePermissions(new URL(WEB_URL).origin, ["geolocation"]);
+  await page.setGeolocation({ latitude: HO_GUOM[1], longitude: HO_GUOM[0] });
+  await page.click("[data-testid=nearby-button]");
+  await page.click("[data-testid=nearby-gps]");
+  await waitForEventCount(page, (n) => n >= 2);
+  await sleep(1200);
+  await waitForMapIdle(page);
+  const nearbyRows = await page.$$eval("[data-testid=event-item]", (els) =>
+    els.map((e) => ({
+      text: e.querySelector("[data-testid=event-distance]")?.textContent ?? "",
+      status: e.querySelector("[data-testid=status-badge]")?.dataset.status,
+    })),
+  );
+  const meters = nearbyRows.map((r) => (r.text.endsWith(" km") ? parseFloat(r.text.replace(",", ".")) * 1000 : parseFloat(r.text)));
+  check(nearbyRows.length >= 2, `Quanh Hồ Gươm 2 km có ${nearbyRows.length} sự kiện: ${nearbyRows.map((r) => r.text).join(", ")}`);
+  check(meters.every((m, i) => i === 0 || m >= meters[i - 1]) && meters.every((m) => m <= 2000), "Xếp gần đến xa, đều trong 2 km");
+  check(nearbyRows.every((r) => r.status !== "ended"), "Mặc định chỉ sự kiện đang hoặc sắp diễn ra");
+  const nearestHighlighted = await page.evaluate(() => {
+    const map = window.__vegisMap;
+    // 1 chấm có thể xuất hiện trong nhiều ô (tile) nên lọc trùng theo id
+    const ids = [...new Set(map.querySourceFeatures("events").map((f) => f.id))];
+    return ids.filter((id) => map.getFeatureState({ source: "events", id }).nearest).length;
+  });
+  check(nearestHighlighted === 1, "Sự kiện gần nhất được tô nổi trên bản đồ");
+  const areaDrawn = await page.evaluate(() => window.__vegisMap.querySourceFeatures("nearby-area").length > 0);
+  check(areaDrawn, "Vẽ vòng tròn bán kính quét trên bản đồ");
+  await page.screenshot({ path: path.join(shotsDir, "06-quanh-day.png") });
+
+  await page.click("[data-testid=event-item]");
+  await page.waitForSelector("[data-testid=directions-link]");
+  const link = await page.$eval("[data-testid=directions-link]", (a) => ({ href: a.href, target: a.target }));
+  const u = new URL(link.href);
+  check(
+    u.hostname === "www.google.com" && u.searchParams.get("api") === "1" && /^[\d.]+,[\d.]+$/.test(u.searchParams.get("destination")) && !u.searchParams.has("origin"),
+    `Chỉ đường: Google Maps, có điểm đến, không có điểm xuất phát (${u.search})`,
+  );
+  check(u.searchParams.get("travelmode") === "two-wheeler" && link.target === "_blank", "Mặc định xe máy, mở tab mới");
+  await page.select("[data-testid=travel-mode]", "walking");
+  const walking = await page.$eval("[data-testid=directions-link]", (a) => new URL(a.href).searchParams.get("travelmode"));
+  check(walking === "walking", "Đổi phương tiện sang đi bộ");
+
+  // Chọn 1 điểm trên bản đồ ở nơi không có sự kiện gần: gợi ý sự kiện gần nhất
+  await page.click("[data-testid=nearby-pick]");
+  await page.evaluate(() => window.__vegisMap.jumpTo({ center: [103.47, 22.39], zoom: 10 }));
+  await waitForMapIdle(page);
+  const far = await lngLatToPagePoint(page, [103.47, 22.39]);
+  await page.mouse.click(far.x, far.y);
+  await page.waitForSelector("[data-testid=nearby-empty]", { timeout: 5000 }).catch(() => null);
+  check(!!(await page.$("[data-testid=nearest-link]")), "Không có gì trong bán kính: gợi ý sự kiện gần nhất");
+  await page.click("[data-testid=nearby-exit]");
+  await sleep(500);
 
   console.log("3. Thiết bị cảm ứng: chạm 1 lần xem tên, chạm lần 2 chọn");
   const mobile = await browser.newPage();

@@ -2,7 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { query } from "../db.js";
 import { HttpError, parse } from "../lib/http.js";
-import { TIME_FILTERS, timeRange } from "../lib/time.js";
+import { TIME_FILTERS, type TimeFilter, timeRange } from "../lib/time.js";
 
 export const eventsRouter = Router();
 
@@ -31,25 +31,16 @@ const ORDER_SQL = `ORDER BY CASE ${STATUS_SQL} WHEN 'live' THEN 0 WHEN 'upcoming
                    CASE WHEN now() <= e.end_at THEN e.start_at END ASC,
                    e.end_at DESC`;
 
-const listSchema = z.object({
-  province: z.string().regex(/^\d{2}$/).optional(),
-  ward: z.string().regex(/^\d{5}$/).optional(),
-  q: z.string().trim().max(100).optional(),
-  when: z.enum(TIME_FILTERS).default("all"),
-  limit: z.coerce.number().int().min(1).max(500).default(200),
-});
-
-// GET /api/events?province=01&ward=00004&q=nhạc&when=weekend
-eventsRouter.get("/", async (req, res) => {
-  const f = parse(listSchema, req.query);
+// Ghép điều kiện WHERE dùng chung cho danh sách và "Quanh đây".
+// Giá trị luôn truyền qua tham số $1, $2... (không nối chuỗi) để tránh lỗi SQL injection.
+type Filters = { province?: string; ward?: string; q?: string; when: TimeFilter };
+function buildWhere(f: Filters, params: unknown[]): string {
   // Chỉ hiện sự kiện đã được duyệt
   const where = ["e.approval_status = 'approved'"];
-  const params: unknown[] = [];
   const add = (sql: string, value: unknown) => {
     params.push(value);
     where.push(sql.replace("?", `$${params.length}`));
   };
-
   if (f.province) add("e.province_code = ?", f.province);
   if (f.ward) add("e.ward_code = ?", f.ward);
   if (f.q) {
@@ -68,13 +59,69 @@ eventsRouter.get("/", async (req, res) => {
     add("e.start_at < ?", range.to);
     add("e.end_at > ?", range.from);
   }
+  return where.join(" AND ");
+}
 
+const listSchema = z.object({
+  province: z.string().regex(/^\d{2}$/).optional(),
+  ward: z.string().regex(/^\d{5}$/).optional(),
+  q: z.string().trim().max(100).optional(),
+  when: z.enum(TIME_FILTERS).default("all"),
+  limit: z.coerce.number().int().min(1).max(500).default(200),
+});
+
+// GET /api/events?province=01&ward=00004&q=nhạc&when=weekend
+eventsRouter.get("/", async (req, res) => {
+  const f = parse(listSchema, req.query);
+  const params: unknown[] = [];
+  const where = buildWhere(f, params);
   params.push(f.limit);
   const rows = await query(
-    `SELECT ${EVENT_COLUMNS} ${EVENT_JOINS} WHERE ${where.join(" AND ")} ${ORDER_SQL} LIMIT $${params.length}`,
+    `SELECT ${EVENT_COLUMNS} ${EVENT_JOINS} WHERE ${where} ${ORDER_SQL} LIMIT $${params.length}`,
     params,
   );
   res.json(rows);
+});
+
+const nearbySchema = z.object({
+  lat: z.coerce.number().min(-90).max(90),
+  lng: z.coerce.number().min(-180).max(180),
+  radiusKm: z.coerce.number().min(1, "Bán kính từ 1 km").max(5, "Bán kính tối đa 5 km").default(2),
+  // Mặc định chỉ sự kiện đang hoặc sắp diễn ra
+  when: z.enum(TIME_FILTERS).default("upcoming"),
+  q: z.string().trim().max(100).optional(),
+});
+
+// GET /api/events/nearby?lat=..&lng=..&radiusKm=2
+// Tọa độ người dùng chỉ dùng để truy vấn, không lưu và không ghi log.
+eventsRouter.get("/nearby", async (req, res) => {
+  const f = parse(nearbySchema, req.query);
+  const params: unknown[] = [f.lng, f.lat];
+  const where = buildWhere(f, params);
+  const point = "ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography";
+  const distance = `ST_Distance(e.location, ${point}) AS "distanceM"`;
+
+  params.push(f.radiusKm * 1000);
+  // ST_DWithin trên cột geography (đơn vị mét) dùng được chỉ mục GiST nên rất nhanh
+  const events = await query(
+    `SELECT ${EVENT_COLUMNS}, ${distance} ${EVENT_JOINS}
+     WHERE ${where} AND ST_DWithin(e.location, ${point}, $${params.length})
+     ORDER BY "distanceM" LIMIT 100`,
+    params,
+  );
+
+  // Không có gì trong bán kính: gợi ý sự kiện gần nhất bất kể khoảng cách
+  // (toán tử <-> sắp xếp theo khoảng cách, cũng dùng chỉ mục GiST)
+  let nearest = null;
+  if (events.length === 0) {
+    const rows = await query(
+      `SELECT ${EVENT_COLUMNS}, ${distance} ${EVENT_JOINS}
+       WHERE ${where} ORDER BY e.location <-> ${point} LIMIT 1`,
+      params.slice(0, -1),
+    );
+    nearest = rows[0] ?? null;
+  }
+  res.json({ radiusKm: f.radiusKm, events, nearest });
 });
 
 // GET /api/events/:id

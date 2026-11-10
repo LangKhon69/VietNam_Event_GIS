@@ -32,7 +32,7 @@ export const TIME_FILTER_LABELS: Record<TimeFilter, string> = {
   tonight: "Tối nay",
   weekend: "Cuối tuần",
   week: "7 ngày tới",
-  upcoming: "Chưa kết thúc",
+  upcoming: "Đang & sắp diễn ra",
   ended: "Đã kết thúc",
 };
 

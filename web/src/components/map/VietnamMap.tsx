@@ -24,6 +24,7 @@ const BASE_STYLE: StyleSpecification = {
 const EMPTY_FC: GeoJSON.FeatureCollection = { type: "FeatureCollection", features: [] };
 const hovered: ExpressionSpecification = ["boolean", ["feature-state", "hover"], false];
 const selected: ExpressionSpecification = ["boolean", ["feature-state", "selected"], false];
+const nearestState: ExpressionSpecification = ["boolean", ["feature-state", "nearest"], false];
 
 // Thiết bị cảm ứng không có hover: chạm lần 1 xem tên, chạm lần 2 mới chọn
 const isTouchDevice = () => window.matchMedia("(hover: none)").matches;
@@ -37,7 +38,24 @@ type Props = {
   events: EventItem[];
   selectedEventId: number | null;
   onSelectEvent: (event: EventItem) => void;
+  /** Quanh đây: tâm, bán kính và sự kiện gần nhất (null khi không ở chế độ Quanh đây) */
+  nearby: { center: LatLng | null; radiusKm: number; nearestId: number | null } | null;
+  /** Đang ở chế độ "chọn điểm trên bản đồ" */
+  pickMode: boolean;
+  onPickPoint: (point: LatLng) => void;
 };
+
+type LatLng = { lat: number; lng: number };
+
+// Đa giác xấp xỉ vòng tròn bán kính `km` quanh tâm (64 đỉnh), để vẽ vùng quét Quanh đây
+function circleRing(center: LatLng, km: number): [number, number][] {
+  const dLat = km / 111.32; // 1 độ vĩ ≈ 111,32 km
+  const dLng = km / (111.32 * Math.cos((center.lat * Math.PI) / 180)); // 1 độ kinh ngắn dần về phía cực
+  return Array.from({ length: 65 }, (_, i) => {
+    const a = (i / 64) * 2 * Math.PI;
+    return [center.lng + dLng * Math.cos(a), center.lat + dLat * Math.sin(a)];
+  });
+}
 
 type HoverLabel = { x: number; y: number; text: string } | null;
 type Picked = { source: "provinces" | "wards" | "events"; feature: MapGeoJSONFeature };
@@ -67,6 +85,8 @@ export default function VietnamMap(props: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const provincesRef = useRef<Map<string, ProvinceRef>>(new Map());
+  const prevSelectedRef = useRef<number | null>(null);
+  const prevNearestRef = useRef<number | null>(null);
   const [mapReady, setMapReady] = useState(false);
   const [hoverLabel, setHoverLabel] = useState<HoverLabel>(null);
 
@@ -200,6 +220,28 @@ export default function VietnamMap(props: Props) {
         },
       });
 
+      // Vùng quét "Quanh đây": vòng tròn bán kính và điểm tâm
+      map.addSource("nearby-area", { type: "geojson", data: EMPTY_FC });
+      map.addSource("nearby-center", { type: "geojson", data: EMPTY_FC });
+      map.addLayer({
+        id: "nearby-fill",
+        type: "fill",
+        source: "nearby-area",
+        paint: { "fill-color": "#0ea5e9", "fill-opacity": 0.12 },
+      });
+      map.addLayer({
+        id: "nearby-line",
+        type: "line",
+        source: "nearby-area",
+        paint: { "line-color": "#0284c7", "line-width": 2, "line-dasharray": [2, 2] },
+      });
+      map.addLayer({
+        id: "nearby-center",
+        type: "circle",
+        source: "nearby-center",
+        paint: { "circle-color": "#0284c7", "circle-radius": 6, "circle-stroke-color": "#fff", "circle-stroke-width": 2 },
+      });
+
       // Điểm sự kiện: màu theo trạng thái (đỏ = đang diễn ra, xanh = sắp diễn ra, xám = đã kết thúc)
       map.addSource("events", { type: "geojson", data: eventsToGeoJSON(propsRef.current.events) });
       map.addLayer({
@@ -218,8 +260,9 @@ export default function VietnamMap(props: Props) {
           ],
           // Bán kính tăng theo mức zoom (MapLibre yêu cầu ["zoom"] nằm ngoài cùng); chấm đang chọn to hơn
           "circle-radius": ["interpolate", ["linear"], ["zoom"], 5, ["case", selected, 7, 4.5], 12, ["case", selected, 12, 8]],
-          "circle-stroke-color": "#ffffff",
-          "circle-stroke-width": ["case", selected, 3, hovered, 2.5, 1.5],
+          // Sự kiện gần nhất (Quanh đây) có viền vàng nổi bật
+          "circle-stroke-color": ["case", nearestState, "#facc15", "#ffffff"],
+          "circle-stroke-width": ["case", nearestState, 4, selected, 3, hovered, 2.5, 1.5],
         },
       });
 
@@ -254,6 +297,11 @@ export default function VietnamMap(props: Props) {
     map.getCanvas().addEventListener("mouseleave", () => setHover(null));
 
     map.on("click", (e) => {
+      // Chế độ "chọn điểm trên bản đồ" cho Quanh đây: lấy tọa độ, không chọn tỉnh/sự kiện
+      if (propsRef.current.pickMode) {
+        propsRef.current.onPickPoint({ lat: e.lngLat.lat, lng: e.lngLat.lng });
+        return;
+      }
       const picked = pick(e.point);
       if (!picked) {
         setHover(null);
@@ -328,7 +376,11 @@ export default function VietnamMap(props: Props) {
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !mapReady) return;
-    map.removeFeatureState({ source: "events" });
+    // Chỉ xóa trạng thái "selected" của chấm cũ (giữ nguyên trạng thái "nearest")
+    if (prevSelectedRef.current !== null) {
+      map.setFeatureState({ source: "events", id: prevSelectedRef.current }, { selected: false });
+    }
+    prevSelectedRef.current = selectedEventId;
     if (selectedEventId === null) return;
     map.setFeatureState({ source: "events", id: selectedEventId }, { selected: true });
     const event = propsRef.current.events.find((e) => e.id === selectedEventId);
@@ -336,6 +388,53 @@ export default function VietnamMap(props: Props) {
       map.easeTo({ center: [event.lng, event.lat], zoom: Math.max(map.getZoom(), 12), padding: focusPadding(), duration: 800 });
     }
   }, [selectedEventId, mapReady]);
+
+  // 6) Quanh đây: vẽ vòng tròn bán kính, căn khung theo vòng tròn
+  const nearby = props.nearby;
+  const nearbyKey = nearby?.center ? `${nearby.center.lat},${nearby.center.lng},${nearby.radiusKm}` : null;
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady) return;
+    const area = map.getSource("nearby-area") as maplibregl.GeoJSONSource;
+    const center = map.getSource("nearby-center") as maplibregl.GeoJSONSource;
+    const current = propsRef.current.nearby;
+    if (!current?.center) {
+      area.setData(EMPTY_FC);
+      center.setData(EMPTY_FC);
+      return;
+    }
+    const ring = circleRing(current.center, current.radiusKm);
+    area.setData({ type: "Feature", properties: {}, geometry: { type: "Polygon", coordinates: [ring] } });
+    center.setData({
+      type: "Feature",
+      properties: {},
+      geometry: { type: "Point", coordinates: [current.center.lng, current.center.lat] },
+    });
+    const lngs = ring.map((c) => c[0]);
+    const lats = ring.map((c) => c[1]);
+    map.fitBounds([Math.min(...lngs), Math.min(...lats), Math.max(...lngs), Math.max(...lats)], {
+      padding: focusPadding(),
+      duration: 800,
+    });
+  }, [nearbyKey, mapReady]);
+
+  // 7) Tô nổi sự kiện gần nhất
+  const nearestId = nearby?.nearestId ?? null;
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady) return;
+    if (prevNearestRef.current !== null) {
+      map.setFeatureState({ source: "events", id: prevNearestRef.current }, { nearest: false });
+    }
+    prevNearestRef.current = nearestId;
+    if (nearestId !== null) map.setFeatureState({ source: "events", id: nearestId }, { nearest: true });
+  }, [nearestId, mapReady]);
+
+  // Con trỏ hình chữ thập khi đang chọn điểm
+  useEffect(() => {
+    const map = mapRef.current;
+    if (map) map.getCanvas().style.cursor = props.pickMode ? "crosshair" : "";
+  }, [props.pickMode]);
 
   return (
     <div className="relative h-full w-full">
