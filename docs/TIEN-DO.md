@@ -11,7 +11,7 @@ Cập nhật sau mỗi bước. Đánh dấu `[x]` khi bước đã chạy thử
 - [x] **Bước 4. CSDL và API:** Docker Compose PostgreSQL + PostGIS, `api/` Node.js, nạp ranh giới tỉnh và xã/phường, bảng thống kê tỉnh.
 - [x] **Bước 5. Sự kiện:** bảng Venue và Event, dữ liệu mẫu ở nhiều tỉnh, hiển thị điểm trên bản đồ, danh sách theo tỉnh và theo xã/phường, trạng thái Sắp diễn ra / Live / Đã kết thúc, bộ lọc thời gian, tìm kiếm.
 - [x] **Bước 6. Chỉ đường và Quanh đây:** thẻ sự kiện có nút Chỉ đường (Google Maps URL, chọn phương tiện); Quanh đây bán kính 1–5 km bằng `ST_DWithin`.
-- [ ] **Bước 7. Tài khoản và đăng sự kiện:** đăng ký, đăng nhập, vai trò; form đăng sự kiện, ghim trên bản đồ hoặc GPS, kiểm tra `ST_Covers`, tự gán tỉnh và xã/phường.
+- [x] **Bước 7. Tài khoản và đăng sự kiện:** đăng ký, đăng nhập, vai trò; form đăng sự kiện, ghim trên bản đồ hoặc GPS, kiểm tra `ST_Covers`, tự gán tỉnh và xã/phường.
 - [ ] **Bước 8. Quản trị:** trang admin duyệt sự kiện, đánh dấu xác thực người nổi tiếng và chủ địa điểm.
 - [ ] **Bước 9. Hoàn thiện:** chạy lại toàn bộ kịch bản demo, README tiếng Việt kèm ảnh chụp màn hình, dọn code, sẵn sàng đưa lên GitHub.
 
@@ -53,6 +53,11 @@ Cập nhật sau mỗi bước. Đánh dấu `[x]` khi bước đã chạy thử
 - API `GET /api/events/nearby`: `ST_DWithin(location, điểm, bán_kính_m)` trên geography, sắp theo `ST_Distance`, bán kính 1–5 km, mặc định `when=upcoming` (đang + sắp diễn ra), kết hợp được bộ lọc thời gian; không có kết quả thì trả `nearest` (toán tử KNN `<->`). Tọa độ không lưu, không log.
 - Web: nút "📍 Quanh đây": GPS hoặc "Chọn điểm trên bản đồ", thanh trượt 1–5 km, vòng tròn quét + căn khung, khoảng cách từng dòng, sự kiện gần nhất viền vàng, gợi ý tăng bán kính / sự kiện gần nhất.
 - Kiểm thử: `api/test/nearby.test.ts` 4 bài ĐẠT; smoke test giả lập GPS ở Hồ Gươm (4 sự kiện: 4 m, 4 m, 742 m, 1,5 km) và kiểm tra liên kết Chỉ đường ĐẠT.
+- **Bước 7 xong.** Migration `003_users.sql`: bảng users (role user/celebrity/venue_owner/admin, is_verified), cột created_by, owner_id. API `/api/auth/register|login|me` (bcrypt cost 10, JWT 7 ngày, không tự đăng ký được admin, thông báo đăng nhập sai không lộ email nào tồn tại). `POST /api/events`, `POST /api/venues`, `GET /api/me/events|venues`: server tự xác định tỉnh, xã/phường bằng ST_Covers (không tin mã tỉnh trình duyệt gửi), ghim ngoài ranh giới -> 422. Quy tắc duyệt: admin và tài khoản đã xác thực -> duyệt ngay; còn lại chờ duyệt.
+- Seed: tạo admin từ ADMIN_EMAIL/ADMIN_PASSWORD trong `api/.env`, 2 tài khoản demo chưa xác thực có 2 sự kiện + 1 địa điểm chờ duyệt; chỉ xóa dữ liệu mẫu, giữ dữ liệu người dùng thật.
+- Web: `AuthProvider` (context React) + thanh tiêu đề chung; trang `/dang-ky`, `/dang-nhap`, `/dang-su-kien` (đăng sự kiện hoặc địa điểm, bản đồ nhỏ để ghim/kéo ghim/GPS, hiện ngay "Thuộc Phường X, Tỉnh Y" hoặc lỗi ngoài ranh giới; danh sách "Sự kiện của tôi" kèm trạng thái duyệt).
+- Kiểm thử: `api/test/accounts.test.ts` 8 bài ĐẠT; smoke test đăng ký trên giao diện, ghim giữa biển bị từ chối, ghim Hồ Gươm -> Phường Hoàn Kiếm, Hà Nội, đăng xong ở trạng thái Chờ duyệt. ĐẠT.
+- Vấn đề: ghim chính xác khó vì chưa có bản đồ nền (chỉ thấy đường ranh giới phường) -> ghi vào "Để sau".
 
 ## Để sau
 

@@ -31,6 +31,35 @@ async function waitForEventCount(p, predicate, timeout = 5000) {
   return -1;
 }
 
+// Gán giá trị cho ô input theo cách React nhận biết được (dùng cho ô ngày giờ)
+async function setInputValue(p, selector, value) {
+  await p.$eval(
+    selector,
+    (el, v) => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set.call(el, v);
+      el.dispatchEvent(new Event("input", { bubbles: true }));
+    },
+    value,
+  );
+}
+
+// "2026-11-10T19:00" theo giờ Việt Nam
+function vnLocal(ms) {
+  return new Date(ms + 7 * 3600e3).toISOString().slice(0, 16);
+}
+
+// Bấm lên bản đồ nhỏ ở trang đăng sự kiện
+async function clickPinMap(p, lngLat) {
+  await p.evaluate(() => new Promise((r) => (window.__vegisPinMap.loaded() ? r() : window.__vegisPinMap.once("idle", r))));
+  const pt = await p.evaluate((ll) => {
+    const map = window.__vegisPinMap;
+    const q = map.project(ll);
+    const rect = map.getCanvas().getBoundingClientRect();
+    return { x: rect.left + q.x, y: rect.top + q.y };
+  }, lngLat);
+  await p.mouse.click(pt.x, pt.y);
+}
+
 let failures = 0;
 function check(condition, message) {
   console.log(`${condition ? "  ĐẠT " : "  LỖI "} ${message}`);
@@ -42,6 +71,7 @@ const page = await browser.newPage();
 const consoleErrors = [];
 page.on("console", (m) => m.type() === "error" && consoleErrors.push(m.text()));
 page.on("pageerror", (e) => consoleErrors.push(String(e)));
+page.on("response", (r) => r.status() >= 400 && consoleErrors.push(`  ↳ ${r.status()} ${r.url().split("?")[0]}`));
 
 try {
   console.log("1. Bản đồ 34 tỉnh");
@@ -242,6 +272,44 @@ try {
   check(!!(await page.$("[data-testid=nearest-link]")), "Không có gì trong bán kính: gợi ý sự kiện gần nhất");
   await page.click("[data-testid=nearby-exit]");
   await sleep(500);
+
+  console.log("6. Đăng ký và đăng sự kiện (kiểm tra ranh giới ST_Covers)");
+  const stamp = Date.now();
+  const testEmail = `smoke-${stamp}@example.com`;
+  await page.goto(`${WEB_URL}/dang-ky`, { waitUntil: "networkidle2" });
+  await page.type("[data-testid=input-name]", "Ca sĩ Smoke Test");
+  await page.type("[data-testid=input-email]", testEmail);
+  await page.type("[data-testid=input-password]", "matkhau123");
+  await page.select("[data-testid=input-role]", "celebrity");
+  await page.click("[data-testid=submit]");
+  await page.waitForSelector("[data-testid=f-title]", { timeout: 10000 });
+  check((await textOf(page, "current-user")).includes("Ca sĩ Smoke Test"), "Đăng ký xong thì đã đăng nhập và vào trang đăng sự kiện");
+
+  await page.type("[data-testid=f-title]", `Đêm nhạc smoke test ${stamp}`);
+  await setInputValue(page, "[data-testid=f-start]", vnLocal(Date.now() + 2 * 3600e3));
+  await setInputValue(page, "[data-testid=f-end]", vnLocal(Date.now() + 5 * 3600e3));
+  await page.type("[data-testid=f-address]", "Phố đi bộ Hồ Gươm");
+  await page.waitForFunction(() => window.__vegisPinMap?.loaded());
+  // Ghim giữa biển: phải bị từ chối
+  await page.evaluate(() => window.__vegisPinMap.jumpTo({ center: [111, 14], zoom: 6 }));
+  await clickPinMap(page, [111, 14]);
+  await page.waitForFunction(() => document.querySelector("[data-testid=location-check]")?.textContent.startsWith("✗"), { timeout: 5000 }).catch(() => null);
+  check((await textOf(page, "location-check")).startsWith("✗"), `Ghim giữa biển bị từ chối: "${await textOf(page, "location-check")}"`);
+  // Ghim ở Hồ Gươm: tự gán Hà Nội
+  await page.evaluate((c) => window.__vegisPinMap.jumpTo({ center: c, zoom: 14 }), HO_GUOM);
+  await clickPinMap(page, HO_GUOM);
+  await page.waitForFunction(() => document.querySelector("[data-testid=location-check]")?.textContent.startsWith("✓"), { timeout: 5000 }).catch(() => null);
+  const located = await textOf(page, "location-check");
+  check(located.startsWith("✓") && located.includes("Hà Nội"), `Ghim ở Hồ Gươm: "${located}"`);
+  await page.$eval("[data-testid=location-check]", (el) => el.scrollIntoView({ block: "end" }));
+  await sleep(800);
+  await page.screenshot({ path: path.join(shotsDir, "07-dang-su-kien.png") });
+  await page.click("[data-testid=f-submit]");
+  await page.waitForSelector("[data-testid=post-result]", { timeout: 10000 });
+  const postResult = await textOf(page, "post-result");
+  check(postResult.includes("chờ quản trị viên duyệt"), `Tài khoản chưa xác thực: "${postResult}"`);
+  await sleep(500);
+  check((await textOf(page, "my-events")).includes("Chờ duyệt"), "Sự kiện của tôi hiện trạng thái Chờ duyệt");
 
   console.log("3. Thiết bị cảm ứng: chạm 1 lần xem tên, chạm lần 2 chọn");
   const mobile = await browser.newPage();

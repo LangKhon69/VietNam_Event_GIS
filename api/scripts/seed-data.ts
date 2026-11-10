@@ -12,7 +12,19 @@ export type SeedEvent = {
   durationHours: number;
   description: string;
   ticketUrl?: string;
+  /** Do tài khoản demo này đăng và đang chờ duyệt (để demo trang quản trị) */
+  pendingBy?: string;
 };
+
+export const demoUsers = [
+  { key: "ca-si-demo", displayName: "Ca sĩ Minh An (demo)", role: "celebrity" },
+  { key: "chu-quan-demo", displayName: "Quán Gió Chiều (demo)", role: "venue_owner" },
+] as const;
+
+// Địa điểm do chủ địa điểm demo đăng, đang chờ duyệt
+export const pendingVenues = [
+  { key: "dn-giochieu", name: "Quán cà phê Gió Chiều", address: "Bạch Đằng, Đà Nẵng", category: "Quán cà phê", lat: 16.07214, lng: 108.22429, owner: "chu-quan-demo" },
+];
 
 export const venues: SeedVenue[] = [
   { key: "hn-nhahatlon", name: "Nhà hát Lớn Hà Nội", address: "1 Tràng Tiền, Hà Nội", category: "Nhà hát", lat: 21.02437, lng: 105.85766 },
@@ -70,4 +82,7 @@ export const events: SeedEvent[] = [
   { title: "Phiên chợ vùng cao Sa Pa", category: "Văn hóa", venue: "lc-sapa", startInHours: 40, durationHours: 6, description: "Giao lưu văn hóa các dân tộc, khèn và múa xòe." },
   { title: "Hội thảo Khởi nghiệp miền Trung", category: "Hội thảo", venue: "na-vinh", startInHours: -24 * 6, durationHours: 8, description: "Chia sẻ kinh nghiệm khởi nghiệp và kết nối nhà đầu tư." },
   { title: "Lễ hội Cà phê Buôn Ma Thuột", category: "Lễ hội", venue: "dl-bmt", startInHours: 24 * 5, durationHours: 24 * 3, description: "Thưởng lãm cà phê, cồng chiêng Tây Nguyên." },
+  // Chờ duyệt (do tài khoản demo chưa xác thực đăng)
+  { title: "Fan meeting Minh An", category: "Âm nhạc", venue: "hcm-taodan", startInHours: 24 * 4, durationHours: 3, description: "Giao lưu, ký tặng người hâm mộ.", pendingBy: "ca-si-demo" },
+  { title: "Đêm nhạc mộc Gió Chiều", category: "Âm nhạc", venue: "dn-giochieu", startInHours: 30, durationHours: 3, description: "Nhạc acoustic bên sông Hàn.", pendingBy: "chu-quan-demo" },
 ];
