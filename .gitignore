@@ -1,0 +1,25 @@
+# Thư viện cài bằng npm (rất nặng, cài lại được bằng `npm install`)
+node_modules/
+
+# Kết quả build (sinh lại được)
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+
+# Bí mật: không bao giờ đưa lên Git, chỉ giữ file mẫu .env.example
+.env
+.env.*
+!.env.example
+
+# Dữ liệu GeoJSON gốc tải về (lớn, tải lại được bằng script)
+data/raw/
+
+# Nhật ký và file rác của hệ điều hành/editor
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
