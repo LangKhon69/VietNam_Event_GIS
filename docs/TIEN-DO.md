@@ -12,7 +12,7 @@ Cập nhật sau mỗi bước. Đánh dấu `[x]` khi bước đã chạy thử
 - [x] **Bước 5. Sự kiện:** bảng Venue và Event, dữ liệu mẫu ở nhiều tỉnh, hiển thị điểm trên bản đồ, danh sách theo tỉnh và theo xã/phường, trạng thái Sắp diễn ra / Live / Đã kết thúc, bộ lọc thời gian, tìm kiếm.
 - [x] **Bước 6. Chỉ đường và Quanh đây:** thẻ sự kiện có nút Chỉ đường (Google Maps URL, chọn phương tiện); Quanh đây bán kính 1–5 km bằng `ST_DWithin`.
 - [x] **Bước 7. Tài khoản và đăng sự kiện:** đăng ký, đăng nhập, vai trò; form đăng sự kiện, ghim trên bản đồ hoặc GPS, kiểm tra `ST_Covers`, tự gán tỉnh và xã/phường.
-- [ ] **Bước 8. Quản trị:** trang admin duyệt sự kiện, đánh dấu xác thực người nổi tiếng và chủ địa điểm.
+- [x] **Bước 8. Quản trị:** trang admin duyệt sự kiện, đánh dấu xác thực người nổi tiếng và chủ địa điểm.
 - [ ] **Bước 9. Hoàn thiện:** chạy lại toàn bộ kịch bản demo, README tiếng Việt kèm ảnh chụp màn hình, dọn code, sẵn sàng đưa lên GitHub.
 
 ## Nhật ký
@@ -58,6 +58,13 @@ Cập nhật sau mỗi bước. Đánh dấu `[x]` khi bước đã chạy thử
 - Web: `AuthProvider` (context React) + thanh tiêu đề chung; trang `/dang-ky`, `/dang-nhap`, `/dang-su-kien` (đăng sự kiện hoặc địa điểm, bản đồ nhỏ để ghim/kéo ghim/GPS, hiện ngay "Thuộc Phường X, Tỉnh Y" hoặc lỗi ngoài ranh giới; danh sách "Sự kiện của tôi" kèm trạng thái duyệt).
 - Kiểm thử: `api/test/accounts.test.ts` 8 bài ĐẠT; smoke test đăng ký trên giao diện, ghim giữa biển bị từ chối, ghim Hồ Gươm -> Phường Hoàn Kiếm, Hà Nội, đăng xong ở trạng thái Chờ duyệt. ĐẠT.
 - Vấn đề: ghim chính xác khó vì chưa có bản đồ nền (chỉ thấy đường ranh giới phường) -> ghi vào "Để sau".
+
+### 2026-11-11
+
+- **Bước 8 xong.** Migration `004_moderation.sql` (bảng moderation_logs). API `/api/admin/*` (chỉ admin; khách 401, người thường 403): danh sách và duyệt/từ chối sự kiện, địa điểm; danh sách người nổi tiếng/chủ địa điểm và xác thực/bỏ xác thực; nhật ký kiểm duyệt. Trang `/quan-tri`.
+- Kiểm thử: `api/test/admin.test.ts` 6 bài; toàn bộ `npm test` 35/35 ĐẠT. Smoke test: admin đăng nhập, duyệt sự kiện vừa đăng, xác thực tài khoản (hiện ✔), có nhật ký, sự kiện xuất hiện trên bản đồ công khai. ĐẠT. Smoke test tự dọn dữ liệu của nó (tài khoản smoke-*@example.com) qua psql trong container.
+- **Đổi cổng web sang 3100**: hôm nay Docker Desktop tự bật container `defense_gis_frontend` (dự án khác) chiếm cổng 3000, khiến web nhảy sang 3001 và bị API chặn CORS. `next dev -p 3100`, `WEB_ORIGIN=http://localhost:3100`.
+- Lỗi đã gặp: lần chạy kiểm thử API hôm qua bị treo (bảng moderation_logs chưa có ở Bước 7) nên để sót dữ liệu kiểm thử, đã xóa; smoke test chờ bản đồ chưa đủ lâu khi server vừa khởi động -> chờ tới khi lớp `event-circle` đã được thêm.
 
 ## Để sau
 

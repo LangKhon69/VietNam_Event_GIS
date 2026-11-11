@@ -5,6 +5,7 @@ import { query } from "./db.js";
 import { errorHandler, HttpError, parse } from "./lib/http.js";
 import { locatePoint } from "./lib/locate.js";
 import { loadUser } from "./lib/auth.js";
+import { adminRouter } from "./routes/admin.js";
 import { authRouter } from "./routes/auth.js";
 import { eventsRouter } from "./routes/events.js";
 import { submitRouter } from "./routes/submit.js";
@@ -14,7 +15,7 @@ import { z } from "zod";
 // Tạo ứng dụng Express (tách khỏi index.ts để kiểm thử dễ hơn)
 export function createApp() {
   const app = express();
-  // CORS: cho phép trang web ở địa chỉ khác cổng (localhost:3000) gọi API này
+  // CORS: cho phép trang web ở địa chỉ khác cổng (localhost:3100) gọi API này
   app.use(cors({ origin: config.webOrigin }));
   app.use(express.json({ limit: "100kb" }));
 
@@ -31,6 +32,7 @@ export function createApp() {
   app.use("/api/events", eventsRouter);
   // POST /api/events, POST /api/venues, GET /api/me/events, GET /api/me/venues
   app.use("/api", submitRouter);
+  app.use("/api/admin", adminRouter);
 
   // GET /api/geo/locate?lat=..&lng=..: điểm này thuộc tỉnh, xã/phường nào
   app.get("/api/geo/locate", async (req, res) => {

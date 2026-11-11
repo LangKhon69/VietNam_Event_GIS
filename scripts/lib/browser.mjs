@@ -23,9 +23,13 @@ export async function launchBrowser() {
   });
 }
 
-// Chờ bản đồ (được gắn vào window.__vegisMap) vẽ xong và hết chuyển động
-export async function waitForMapIdle(page, timeout = 30000) {
-  await page.waitForFunction(() => window.__vegisMap?.loaded() && !window.__vegisMap.isMoving(), { timeout });
+// Chờ bản đồ (được gắn vào window.__vegisMap) đã thêm đủ các lớp, vẽ xong và hết chuyển động.
+// Lớp "event-circle" được thêm cuối cùng, sau khi tải xong GeoJSON tỉnh.
+export async function waitForMapIdle(page, timeout = 60000) {
+  await page.waitForFunction(
+    () => window.__vegisMap?.getLayer("event-circle") && window.__vegisMap.loaded() && !window.__vegisMap.isMoving(),
+    { timeout },
+  );
   await page.evaluate(
     () => new Promise((resolve) => (window.__vegisMap.areTilesLoaded() ? resolve() : window.__vegisMap.once("idle", resolve))),
   );

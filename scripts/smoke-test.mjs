@@ -1,11 +1,12 @@
 // Kiểm thử khói: mở web thật bằng trình duyệt, chạy lại kịch bản demo, chụp ảnh màn hình.
-// Yêu cầu: web đang chạy (mặc định http://localhost:3000).
+// Yêu cầu: web đang chạy (mặc định http://localhost:3100).
 // Chạy: npm run smoke   (ảnh lưu ở docs/screenshots/)
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { launchBrowser, waitForMapIdle, lngLatToPagePoint } from "./lib/browser.mjs";
 
-const WEB_URL = process.env.WEB_URL ?? "http://localhost:3000";
+const WEB_URL = process.env.WEB_URL ?? "http://localhost:3100";
 const shotsDir = path.resolve(import.meta.dirname, "../docs/screenshots");
 fs.mkdirSync(shotsDir, { recursive: true });
 
@@ -29,6 +30,44 @@ async function waitForEventCount(p, predicate, timeout = 5000) {
     await sleep(150);
   }
   return -1;
+}
+
+// Đọc file .env đơn giản (KEY=VALUE) thành object
+function readEnv(file) {
+  if (!fs.existsSync(file)) return {};
+  return Object.fromEntries(
+    fs
+      .readFileSync(file, "utf8")
+      .split(/\r?\n/)
+      .filter((l) => /^[A-Z_]+=/.test(l))
+      .map((l) => [l.slice(0, l.indexOf("=")), l.slice(l.indexOf("=") + 1)]),
+  );
+}
+const repoRoot = path.resolve(import.meta.dirname, "..");
+const apiEnv = readEnv(path.join(repoRoot, "api/.env"));
+
+// Xóa dữ liệu do smoke test tạo ra (tài khoản smoke-*@example.com và mọi thứ họ đăng),
+// chạy psql bên trong container CSDL để không cần cài thêm thư viện.
+function cleanupSmokeData() {
+  const smokeUsers = "SELECT id FROM users WHERE email LIKE 'smoke-%@example.com'";
+  const sql = `
+    DELETE FROM moderation_logs WHERE (target_type = 'user' AND target_id IN (${smokeUsers}))
+      OR (target_type = 'event' AND target_id IN (SELECT id FROM events WHERE created_by IN (${smokeUsers})))
+      OR (target_type = 'venue' AND target_id IN (SELECT id FROM venues WHERE owner_id IN (${smokeUsers})));
+    DELETE FROM events WHERE created_by IN (${smokeUsers});
+    DELETE FROM venues WHERE owner_id IN (${smokeUsers});
+    DELETE FROM users WHERE email LIKE 'smoke-%@example.com';`;
+  const env = readEnv(path.join(repoRoot, ".env"));
+  try {
+    execFileSync(
+      "docker",
+      ["compose", "exec", "-T", "db", "psql", "-q", "-U", env.POSTGRES_USER ?? "vegis", "-d", env.POSTGRES_DB ?? "vegis", "-c", sql],
+      { cwd: repoRoot, stdio: "pipe" },
+    );
+    console.log("(Đã dọn dữ liệu kiểm thử)");
+  } catch (err) {
+    console.log("(Không dọn được dữ liệu kiểm thử: " + String(err.message).split("\n")[0] + ")");
+  }
 }
 
 // Gán giá trị cho ô input theo cách React nhận biết được (dùng cho ô ngày giờ)
@@ -311,6 +350,45 @@ try {
   await sleep(500);
   check((await textOf(page, "my-events")).includes("Chờ duyệt"), "Sự kiện của tôi hiện trạng thái Chờ duyệt");
 
+  console.log("7. Quản trị: duyệt sự kiện, xác thực tài khoản");
+  const smokeTitle = `Đêm nhạc smoke test ${stamp}`;
+  // Đăng xuất người dùng thử, đăng nhập bằng tài khoản admin trong api/.env
+  await page.evaluate(() => localStorage.clear());
+  await page.goto(`${WEB_URL}/dang-nhap`, { waitUntil: "networkidle2" });
+  await page.type("[data-testid=input-email]", apiEnv.ADMIN_EMAIL);
+  await page.type("[data-testid=input-password]", apiEnv.ADMIN_PASSWORD);
+  await page.click("[data-testid=submit]");
+  await page.waitForSelector("[data-testid=pending-events]", { timeout: 10000 });
+  await sleep(500);
+  const pendingTitles = await page.$$eval("[data-testid=pending-event-title]", (els) => els.map((e) => e.textContent));
+  check(pendingTitles.includes(smokeTitle), `Hàng chờ duyệt có ${pendingTitles.length} sự kiện, gồm sự kiện vừa đăng`);
+  await page.screenshot({ path: path.join(shotsDir, "08-quan-tri.png") });
+  // Bấm "Duyệt" đúng dòng của sự kiện vừa đăng
+  await page.$$eval(
+    "[data-testid=pending-event]",
+    (rows, title) => rows.find((r) => r.textContent.includes(title))?.querySelector("[data-testid=approve-event]")?.click(),
+    smokeTitle,
+  );
+  await page.waitForFunction((t) => !document.body.textContent.includes(t), { timeout: 5000 }, smokeTitle).catch(() => null);
+  check(!(await page.$$eval("[data-testid=pending-event-title]", (els) => els.map((e) => e.textContent))).includes(smokeTitle), "Duyệt xong thì rời hàng chờ");
+  // Xác thực tài khoản người nổi tiếng vừa đăng ký
+  await page.$$eval(
+    "[data-testid=verify-user]",
+    (rows, email) => rows.find((r) => r.textContent.includes(email))?.querySelector("[data-testid=toggle-verify]")?.click(),
+    testEmail,
+  );
+  await sleep(800);
+  const verifiedRow = await page.$$eval("[data-testid=verify-user]", (rows, email) => rows.find((r) => r.textContent.includes(email))?.textContent ?? "", testEmail);
+  check(verifiedRow.includes("✔"), "Xác thực người nổi tiếng: có huy hiệu ✔");
+  check(await page.evaluate(() => document.body.textContent.includes("duyệt sự kiện")), "Nhật ký kiểm duyệt ghi lại thao tác");
+
+  // Sự kiện đã duyệt hiện trên bản đồ
+  await page.goto(WEB_URL, { waitUntil: "networkidle2" });
+  await waitForMapIdle(page);
+  await page.type("[data-testid=search-input]", String(stamp));
+  await waitForEventCount(page, (n) => n === 1);
+  check((await textOf(page, "event-list")).includes(smokeTitle), "Sự kiện đã duyệt xuất hiện trên bản đồ công khai");
+
   console.log("3. Thiết bị cảm ứng: chạm 1 lần xem tên, chạm lần 2 chọn");
   const mobile = await browser.newPage();
   await mobile.emulate({
@@ -338,6 +416,7 @@ try {
   console.error(err);
   failures++;
 } finally {
+  cleanupSmokeData();
   if (consoleErrors.length) console.log("Lỗi trong console trình duyệt:\n  " + consoleErrors.join("\n  "));
   await browser.close();
 }
