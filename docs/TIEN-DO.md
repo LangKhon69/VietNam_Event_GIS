@@ -78,7 +78,7 @@ Cập nhật sau mỗi bước. Đánh dấu `[x]` khi bước đã chạy thử
 - Ở trang danh sách theo xã/phường, chấm sự kiện chồng lên xã nên khó bấm chọn xã có sự kiện ở mức zoom tỉnh (phải phóng gần hơn).
 - Đăng nhập: JWT lưu trong localStorage (dễ bị lộ nếu trang có lỗi XSS), chưa giới hạn số lần đăng nhập sai, chưa có quên mật khẩu.
 - Chưa sửa/xóa sự kiện đã đăng; chưa upload ảnh sự kiện.
-- File mẫu của create-next-app còn trong `web/public/` (file.svg, globe.svg, next.svg, vercel.svg, window.svg): chưa xóa vì cần hỏi trước khi xóa file.
+- File mẫu của create-next-app trong `web/public/` (file.svg, globe.svg, next.svg, vercel.svg, window.svg): giữ lại theo quyết định của người dùng (11/11/2026). Hiện không trang nào dùng tới, có thể xóa khi dọn code sau này.
 
 ## Để sau
 
