@@ -13,7 +13,7 @@ Cập nhật sau mỗi bước. Đánh dấu `[x]` khi bước đã chạy thử
 - [x] **Bước 6. Chỉ đường và Quanh đây:** thẻ sự kiện có nút Chỉ đường (Google Maps URL, chọn phương tiện); Quanh đây bán kính 1–5 km bằng `ST_DWithin`.
 - [x] **Bước 7. Tài khoản và đăng sự kiện:** đăng ký, đăng nhập, vai trò; form đăng sự kiện, ghim trên bản đồ hoặc GPS, kiểm tra `ST_Covers`, tự gán tỉnh và xã/phường.
 - [x] **Bước 8. Quản trị:** trang admin duyệt sự kiện, đánh dấu xác thực người nổi tiếng và chủ địa điểm.
-- [ ] **Bước 9. Hoàn thiện:** chạy lại toàn bộ kịch bản demo, README tiếng Việt kèm ảnh chụp màn hình, dọn code, sẵn sàng đưa lên GitHub.
+- [x] **Bước 9. Hoàn thiện:** chạy lại toàn bộ kịch bản demo, README tiếng Việt kèm ảnh chụp màn hình, dọn code, sẵn sàng đưa lên GitHub.
 
 ## Nhật ký
 
@@ -66,6 +66,27 @@ Cập nhật sau mỗi bước. Đánh dấu `[x]` khi bước đã chạy thử
 - **Đổi cổng web sang 3100**: hôm nay Docker Desktop tự bật container `defense_gis_frontend` (dự án khác) chiếm cổng 3000, khiến web nhảy sang 3001 và bị API chặn CORS. `next dev -p 3100`, `WEB_ORIGIN=http://localhost:3100`.
 - Lỗi đã gặp: lần chạy kiểm thử API hôm qua bị treo (bảng moderation_logs chưa có ở Bước 7) nên để sót dữ liệu kiểm thử, đã xóa; smoke test chờ bản đồ chưa đủ lâu khi server vừa khởi động -> chờ tới khi lớp `event-circle` đã được thêm.
 
+- **Bước 9 xong.** Build production sạch (`api`: `tsc`; `web`: `next build`, 6 trang tĩnh), lint sạch. `npm test` 35/35 ĐẠT. Smoke test chạy lại toàn bộ kịch bản demo (46 kiểm tra, 8 ảnh chụp): 4/4 lần liên tiếp ĐẠT, thêm 3 lần sau đó cũng ĐẠT sau khi sửa các chỗ chờ cố định (`sleep`) thành chờ theo điều kiện. Còn 1 hiện tượng chập chờn chưa tái hiện được: lần chạy đầu tiên ngay sau `next build`/khởi động server đôi khi kẹt 60 giây ở bước chờ bản đồ sau khi bấm Hà Nội; đã thêm in trạng thái bản đồ để lần sau gặp thì biết nguyên nhân (thử chờ 3 phút rồi chạy lại vẫn không tái hiện được). Thêm xử lý lỗi khi tải ranh giới xã/phường.
+- README tiếng Việt: giới thiệu, ảnh chụp, công nghệ, kỹ thuật GIS, cấu trúc thư mục, cách chạy, kiểm thử, nguồn dữ liệu.
+- Kịch bản demo trong CLAUDE.md: mục 1–9 đều chạy được (xem phần "Còn thiếu" bên dưới cho các điểm chưa tốt).
+
+### Còn thiếu / chưa tốt của Giai đoạn 1
+
+- Chưa có bản đồ nền: ghim vị trí khi đăng sự kiện và xem "Quanh đây" ở mức phóng gần chỉ thấy ranh giới xã/phường, không thấy đường phố.
+- Số liệu dân số/diện tích lấy qua Wikipedia (trích Tuổi Trẻ), chưa đối chiếu trực tiếp với văn bản Nghị quyết 202/2025/QH15.
+- Ranh giới đã đơn giản hóa (tỉnh ~100 m, xã ~30 m): có khe hở nhỏ giữa các xã, API bù bằng cách lấy xã gần nhất trong 100 m.
+- Ở trang danh sách theo xã/phường, chấm sự kiện chồng lên xã nên khó bấm chọn xã có sự kiện ở mức zoom tỉnh (phải phóng gần hơn).
+- Đăng nhập: JWT lưu trong localStorage (dễ bị lộ nếu trang có lỗi XSS), chưa giới hạn số lần đăng nhập sai, chưa có quên mật khẩu.
+- Chưa sửa/xóa sự kiện đã đăng; chưa upload ảnh sự kiện.
+- File mẫu của create-next-app còn trong `web/public/` (file.svg, globe.svg, next.svg, vercel.svg, window.svg): chưa xóa vì cần hỏi trước khi xóa file.
+
 ## Để sau
 
-(Ý tưởng ngoài phạm vi Giai đoạn 1.)
+- Bản đồ nền (OpenStreetMap qua Protomaps/OpenMapTiles tự quản) để ghim chính xác theo đường phố.
+- Geocoding (tìm địa chỉ gợi ý) khi đăng sự kiện.
+- Đối chiếu số liệu với văn bản gốc NQ 202/2025/QH15, thay bằng số liệu Cục Thống kê khi có; cơ chế cập nhật định kỳ.
+- Cookie httpOnly thay cho localStorage, giới hạn tần suất đăng nhập (rate limit), quên mật khẩu, 2FA cho người nổi tiếng/Gov.
+- Sửa/xóa sự kiện, ảnh sự kiện (object storage, xóa EXIF vị trí), sự kiện lặp lại.
+- Gom cụm điểm (Supercluster) khi số sự kiện lớn; vector tile cho ranh giới xã/phường.
+- Vẽ tuyến chỉ đường ngay trong ứng dụng (OSRM/Valhalla), thêm Apple Maps.
+- CI chạy `npm test` và smoke test tự động khi push lên GitHub.

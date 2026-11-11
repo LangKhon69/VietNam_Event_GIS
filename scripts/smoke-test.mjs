@@ -22,7 +22,7 @@ const textOf = (p, testId) =>
   p.evaluate((id) => document.querySelector(`[data-testid=${id}]`)?.textContent?.trim() ?? "", testId);
 
 // Chờ số sự kiện trong danh sách thỏa điều kiện (danh sách tải lại sau khi đổi bộ lọc)
-async function waitForEventCount(p, predicate, timeout = 5000) {
+async function waitForEventCount(p, predicate, timeout = 10000) {
   const start = Date.now();
   while (Date.now() - start < timeout) {
     const n = await p.$$eval("[data-testid=event-item]", (els) => els.length);
@@ -209,7 +209,13 @@ try {
   await waitForEventCount(page, (n) => n >= 5);
 
   await page.click("[data-testid=filter-live]");
-  await sleep(800);
+  // Chờ danh sách tải lại xong (tối đa 10 giây) thay vì chờ một khoảng cố định
+  await page
+    .waitForFunction(() => {
+      const s = [...document.querySelectorAll("[data-testid=event-list] [data-testid=status-badge]")].map((e) => e.dataset.status);
+      return s.length > 0 && s.every((x) => x === "live");
+    }, { timeout: 10000 })
+    .catch(() => null);
   const liveStatuses = await page.$$eval("[data-testid=event-list] [data-testid=status-badge]", (els) => els.map((e) => e.dataset.status));
   check(liveStatuses.length >= 1 && liveStatuses.every((s) => s === "live"), `Lọc "Đang diễn ra": ${liveStatuses.length} sự kiện, đều LIVE`);
   await page.click("[data-testid=filter-all]");

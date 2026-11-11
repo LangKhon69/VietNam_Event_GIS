@@ -346,10 +346,15 @@ export default function VietnamMap(props: Props) {
     map.setPaintProperty("province-fill", "fill-opacity", ["case", isSelected, 0.7, hovered, 0.6, 0.35]);
     wardsSource.setData(EMPTY_FC);
     fetch(`/geo/wards/${provinceCode}.json`)
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then((data) => {
         if (!cancelled) wardsSource.setData(data);
-      });
+      })
+      // Tải lỗi thì vẫn xem được cấp tỉnh, chỉ thiếu ranh giới xã/phường
+      .catch((err) => console.warn(`Không tải được ranh giới xã/phường của tỉnh ${provinceCode}:`, err));
     const province = provincesRef.current.get(provinceCode);
     if (province) map.fitBounds(province.focusBbox, { padding: focusPadding(), duration: 1000 });
     return () => {
